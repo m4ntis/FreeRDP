@@ -265,10 +265,8 @@ static DWORD WINAPI handle_client(LPVOID arg)
 	client->update->SuppressOutput = tf_peer_suppress_output;
 	client->settings->MultifragMaxRequestSize = 0xFFFFFF; /* FIXME */
 	client->Initialize(client);
-
 	proxyContext* context;
 	context = (proxyContext*) client->context;
-
 	WLog_INFO(TAG, "Client connected: %s",
 	          client->local ? "(local)" : client->hostname);
 	HANDLE eventHandles[32];
