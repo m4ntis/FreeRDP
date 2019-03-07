@@ -229,6 +229,7 @@ BOOL pf_peer_post_connect(freerdp_peer* client)
 	                       host, port, username, password);
 	/* Inject proxy's client context to proxy's context */
 	pContext->peerContext = sContext;
+	((proxyContext*)sContext)->peerContext = (rdpContext*)client->context;
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 
 	pf_peer_rdpgfx_init(cContext);
