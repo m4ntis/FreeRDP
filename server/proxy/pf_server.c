@@ -39,32 +39,24 @@
 #include <freerdp/server/rdpsnd.h>
 
 #include "pf_server.h"
+#include "pf_common.h"
 #include "pf_log.h"
 #include "pf_client.h"
 #include "pf_context.h"
 
 #define TAG PROXY_TAG("server")
 
-static BOOL pf_server_connection_aborted_by_other_side(proxyContext* context)
-{
-	return WaitForSingleObject(context->connectionClosed, 0) == WAIT_OBJECT_0;
-}
-
 void pf_server_handle_client_disconnection(freerdp_peer* client)
 {
 	proxyContext* pContext = (proxyContext*)client->context;
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 	rdpContext* sContext = pContext->peerContext;
-
 	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s", client->hostname,
-	sContext->settings->ServerHostname);
-
+	          sContext->settings->ServerHostname);
 	WLog_INFO(TAG, "connectionClosed event is not set; closing connection to remote server");
-
 	/* Mark connection closed for sContext */
 	SetEvent(pContext->connectionClosed);
 	freerdp_abort_connect(sContext->instance);
-
 	/* Close connection to remote host */
 	WLog_DBG(TAG, "Waiting for proxy's client thread to finish");
 	WaitForSingleObject(cContext->thread, INFINITE);
@@ -128,13 +120,11 @@ BOOL pf_peer_post_connect(freerdp_peer* client)
 	rdpContext* sContext = proxy_to_server_context_create(client->context,
 	                       host, port, username, password);
 	/* Inject proxy's client context to proxy's context */
-
 	HANDLE connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	pContext->peerContext = sContext;
 	pContext->connectionClosed = connectionClosedEvent;
 	((proxyContext*)sContext)->peerContext = (rdpContext*)pContext;
 	((proxyContext*)sContext)->connectionClosed = connectionClosedEvent;
-
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 
 	if (!(cContext->thread = CreateThread(NULL, 0, proxy_client_start, sContext, 0, NULL)))
@@ -306,7 +296,7 @@ static DWORD WINAPI handle_client(LPVOID arg)
 		if (status == WAIT_FAILED)
 		{
 			/* If the wait failed because the connection closed by the proxy, that's ok */
-			if (pf_server_connection_aborted_by_other_side(pContext))
+			if (pf_common_connection_aborted_by_peer(pContext))
 				break;
 
 			WLog_ERR(TAG, "WaitForMultipleObjects failed (errno: %d)", errno);
@@ -320,7 +310,7 @@ static DWORD WINAPI handle_client(LPVOID arg)
 			break;
 	}
 
-	if (!pf_server_connection_aborted_by_other_side(pContext))
+	if (!pf_common_connection_aborted_by_peer(pContext))
 	{
 		pf_server_handle_client_disconnection(client);
 	}
