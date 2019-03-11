@@ -51,16 +51,12 @@ void pf_server_handle_client_disconnection(freerdp_peer* client)
 	proxyContext* pContext = (proxyContext*)client->context;
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 	rdpContext* sContext = pContext->peerContext;
-
 	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s", client->hostname,
-	sContext->settings->ServerHostname);
-
+	          sContext->settings->ServerHostname);
 	WLog_INFO(TAG, "connectionClosed event is not set; closing connection to remote server");
-
 	/* Mark connection closed for sContext */
 	SetEvent(pContext->connectionClosed);
 	freerdp_abort_connect(sContext->instance);
-
 	/* Close connection to remote host */
 	WLog_DBG(TAG, "Waiting for proxy's client thread to finish");
 	WaitForSingleObject(cContext->thread, INFINITE);
@@ -95,7 +91,6 @@ static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
 	return FALSE;
 }
 
-
 /* Event callbacks */
 
 /**
@@ -117,20 +112,18 @@ BOOL pf_peer_post_connect(freerdp_peer* client)
 		return FALSE;
 	}
 
-	// hardcoded connection info for remote host
+	/* hardcoded connection info for remote host */
 	char* username = _strdup("Kobi");
 	char* password = _strdup("123123");
 	/* Start a proxy's client in it's own thread */
 	rdpContext* sContext = proxy_to_server_context_create(client->context,
 	                       host, port, username, password);
 	/* Inject proxy's client context to proxy's context */
-
 	HANDLE connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	pContext->peerContext = sContext;
 	pContext->connectionClosed = connectionClosedEvent;
 	((proxyContext*)sContext)->peerContext = (rdpContext*)pContext;
 	((proxyContext*)sContext)->connectionClosed = connectionClosedEvent;
-
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 
 	if (!(cContext->thread = CreateThread(NULL, 0, proxy_client_start, sContext, 0, NULL)))
@@ -141,6 +134,7 @@ BOOL pf_peer_post_connect(freerdp_peer* client)
 
 	return TRUE;
 }
+
 
 BOOL pf_peer_activate(freerdp_peer* client)
 {
@@ -172,6 +166,8 @@ BOOL pf_peer_unicode_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 
 BOOL pf_peer_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y)
 {
+	proxyContext* context = (proxyContext*)input->context;
+	freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y);
 	WLog_DBG(TAG, "Client sent a mouse event (flags:0x%04"PRIX16" pos:%"PRIu16",%"PRIu16")", flags, x,
 	         y);
 	return TRUE;
