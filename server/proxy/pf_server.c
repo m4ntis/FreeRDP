@@ -40,6 +40,7 @@
 #include <freerdp/server/rdpgfx.h>
 
 #include "pf_server.h"
+#include "pf_common.h"
 #include "pf_log.h"
 #include "pf_client.h"
 #include "pf_context.h"
@@ -206,6 +207,51 @@ int pf_peer_rdpgfx_init(clientToProxyContext* cContext)
 	return 1;
 }
 
+void pf_server_handle_client_disconnection(freerdp_peer* client)
+{
+	proxyContext* pContext = (proxyContext*)client->context;
+	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
+	rdpContext* sContext = pContext->peerContext;
+	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s", client->hostname,
+	          sContext->settings->ServerHostname);
+	WLog_INFO(TAG, "connectionClosed event is not set; closing connection to remote server");
+	/* Mark connection closed for sContext */
+	SetEvent(pContext->connectionClosed);
+	freerdp_abort_connect(sContext->instance);
+	/* Close connection to remote host */
+	WLog_DBG(TAG, "Waiting for proxy's client thread to finish");
+	WaitForSingleObject(cContext->thread, INFINITE);
+	CloseHandle(cContext->thread);
+	freerdp_client_stop(sContext);
+	freerdp_client_context_free(sContext);
+}
+
+static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
+        char** target, DWORD* port)
+{
+#define TARGET_MAX	(100)
+	rdpNego* nego = client->context->rdp->nego;
+
+	if (nego->RoutingToken &&
+	    nego->RoutingTokenLength > 0 && nego->RoutingTokenLength < TARGET_MAX)
+	{
+		*target = _strdup((char*)nego->RoutingToken);
+		char* colon = strchr(*target, ':');
+
+		if (colon)
+		{
+			// port is specified
+			*port = strtoul(colon + 1, NULL, 10);
+			*colon = '\0';
+		}
+
+		return TRUE;
+	}
+
+	// no routing token.
+	return FALSE;
+}
+
 /* Event callbacks */
 
 /**
@@ -218,17 +264,28 @@ int pf_peer_rdpgfx_init(clientToProxyContext* cContext)
 BOOL pf_peer_post_connect(freerdp_peer* client)
 {
 	proxyContext* pContext = (proxyContext*) client->context;
-	/* hardcoded connection info for remote host */
-	char* host = _strdup("192.168.43.43");
-	char* username = _strdup("win1");
-	char* password = _strdup("Password1");
-	DWORD port = 33890;
+	char* host = NULL;
+	DWORD port = 3389; // default port
+
+	if (!pf_server_parse_target_from_routing_token(client, &host, &port))
+	{
+		WLog_ERR(TAG, "pf_server_parse_target_from_routing_token failed!");
+		return FALSE;
+	}
+
+	/* Hardcoded connection info for remote host */
+	char* username = _strdup("Kobi");
+	char* password = _strdup("123123");
 
 	/* Start a proxy's client in it's own thread */
 	rdpContext* sContext = proxy_to_server_context_create(client->context,
 	                       host, port, username, password);
 	/* Inject proxy's client context to proxy's context */
+	HANDLE connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	pContext->peerContext = sContext;
+	pContext->connectionClosed = connectionClosedEvent;
+	((proxyContext*)sContext)->peerContext = (rdpContext*)pContext;
+	((proxyContext*)sContext)->connectionClosed = connectionClosedEvent;
 	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
 
 	pf_peer_rdpgfx_init(cContext);
@@ -241,6 +298,7 @@ BOOL pf_peer_post_connect(freerdp_peer* client)
 
 	return TRUE;
 }
+
 
 BOOL pf_peer_activate(freerdp_peer* client)
 {
@@ -272,6 +330,8 @@ BOOL pf_peer_unicode_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 
 BOOL pf_peer_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y)
 {
+	proxyContext* context = (proxyContext*)input->context;
+	freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y);
 	WLog_DBG(TAG, "Client sent a mouse event (flags:0x%04"PRIX16" pos:%"PRIu16",%"PRIu16")", flags, x,
 	         y);
 	return TRUE;
@@ -405,6 +465,10 @@ static DWORD WINAPI handle_client(LPVOID arg)
 
 		if (status == WAIT_FAILED)
 		{
+			/* If the wait failed because the connection closed by the proxy, that's ok */
+			if (pf_common_connection_aborted_by_peer(pContext))
+				break;
+
 			WLog_ERR(TAG, "WaitForMultipleObjects failed (errno: %d)", errno);
 			break;
 		}
@@ -457,19 +521,13 @@ fail:
 		(void)context->gfx->Close(context->gfx);
 	}
 
-	rdpContext* sContext = pContext->peerContext;
-	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s", client->hostname,
-	          sContext->settings->ServerHostname);
-	freerdp_abort_connect(sContext->instance);
-
-	if (context->thread)
+	if (!pf_common_connection_aborted_by_peer(pContext))
 	{
-		WLog_DBG(TAG, "Waiting for proxy's client thread to finish");
-		WaitForSingleObject(context->thread, INFINITE);
-		CloseHandle(context->thread);
-		WLog_DBG(TAG, "Freeing proxy's client context");
-		freerdp_client_stop(sContext);
-		freerdp_client_context_free(sContext);
+		pf_server_handle_client_disconnection(client);
+	}
+	else
+	{
+		WLog_INFO(TAG, "Connection already aborted; client potentially kicked by the server");
 	}
 
 	client->Disconnect(client);

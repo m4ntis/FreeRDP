@@ -42,6 +42,9 @@
 #include <freerdp/log.h>
 
 #include "pf_channels.h"
+#include "pf_gdi.h"
+#include "pf_graphics.h"
+#include "pf_common.h"
 #include "pf_client.h"
 #include "pf_context.h"
 #include "pf_log.h"
@@ -52,9 +55,9 @@
  * It can be used to reset invalidated areas. */
 static BOOL pf_begin_paint(rdpContext* context)
 {
-	rdpGdi* gdi = context->gdi;
-	gdi->primary->hdc->hwnd->invalid->null = TRUE;
-	return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return sContext->update->BeginPaint(sContext);
 }
 
 /* This function is called when the library completed composing a new
@@ -63,12 +66,9 @@ static BOOL pf_begin_paint(rdpContext* context)
  */
 static BOOL pf_end_paint(rdpContext* context)
 {
-	rdpGdi* gdi = context->gdi;
-
-	if (gdi->primary->hdc->hwnd->invalid->null)
-		return TRUE;
-
-	return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return sContext->update->EndPaint(sContext);
 }
 
 /**
@@ -81,6 +81,10 @@ static BOOL pf_pre_connect(freerdp* instance)
 {
 	rdpSettings* settings;
 	settings = instance->settings;
+	proxyContext* pContext = (proxyContext*)instance->context;
+	rdpContext* cContext = (rdpContext*)pContext->peerContext;
+	/* set color depth after client to proxy negotiation */
+	settings->ColorDepth = cContext->settings->ColorDepth;
 	/* TODO: Consider forwarding this from client. */
 	settings->OsMajorType = OSMAJORTYPE_UNIX;
 	settings->OsMinorType = OSMINORTYPE_NATIVE_XSERVER;
@@ -109,6 +113,14 @@ static BOOL pf_pre_connect(freerdp* instance)
 	return TRUE;
 }
 
+
+BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bitmap)
+{
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return sContext->update->BitmapUpdate(sContext, bitmap);
+}
+
 /**
  * Called after a RDP connection was successfully established.
  * Settings might have changed during negociation of client / server feature
@@ -123,8 +135,32 @@ static BOOL pf_post_connect(freerdp* instance)
 	if (!gdi_init(instance, PIXEL_FORMAT_XRGB32))
 		return FALSE;
 
-	instance->update->BeginPaint = pf_begin_paint;
-	instance->update->EndPaint = pf_end_paint;
+	rdpContext* context = instance->context;
+	rdpSettings* settings = instance->settings;
+	rdpUpdate* update = instance->update;
+
+	if (!pf_register_pointer(context->graphics))
+		return FALSE;
+
+	if (!settings->SoftwareGdi)
+	{
+		if (!pf_register_graphics(context->graphics))
+		{
+			WLog_ERR(TAG, "failed to register graphics");
+			return FALSE;
+		}
+
+		pf_gdi_register_update_callbacks(update);
+		brush_cache_register_callbacks(instance->update);
+		glyph_cache_register_callbacks(instance->update);
+		bitmap_cache_register_callbacks(instance->update);
+		offscreen_cache_register_callbacks(instance->update);
+		palette_cache_register_callbacks(instance->update);
+	}
+
+	update->BeginPaint = pf_begin_paint;
+	update->EndPaint = pf_end_paint;
+	update->BitmapUpdate = pf_client_bitmap_update;
 	return TRUE;
 }
 
@@ -142,12 +178,26 @@ static void pf_post_disconnect(freerdp* instance)
 		return;
 
 	context = (proxyToServerContext*) instance->context;
+	proxyContext* pContext = (proxyContext*)context;
 	PubSub_UnsubscribeChannelConnected(instance->context->pubSub,
 	                                   pf_OnChannelConnectedEventHandler);
 	PubSub_UnsubscribeChannelDisconnected(instance->context->pubSub,
 	                                      pf_OnChannelDisconnectedEventHandler);
 	gdi_free(instance);
-	/* TODO : Clean up custom stuff */
+	rdpContext* cContext = pContext->peerContext;
+
+	if (!pf_common_connection_aborted_by_peer(pContext))
+	{
+		SetEvent(pContext->connectionClosed);
+		WLog_INFO(TAG, "connectionClosed event is not set; closing connection with client");
+		freerdp_peer* peer = cContext->peer;
+		peer->Disconnect(peer);
+	}
+
+	/*
+	* It's important to avoid calling `freerdp_peer_context_free` and `freerdp_peer_free` here,
+	* in order to avoid double-free. Those objects will be freed by the server when needed.
+	*/
 }
 
 /**
