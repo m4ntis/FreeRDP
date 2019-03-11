@@ -195,6 +195,7 @@ int pf_peer_rdpgfx_init(clientToProxyContext* cContext)
 {
 	RdpgfxServerContext* gfx;
 	gfx = cContext->gfx = rdpgfx_server_context_new(cContext->vcm);
+
 	if (!gfx)
 	{
 		return 0;
@@ -264,6 +265,7 @@ static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
 BOOL pf_peer_post_connect(freerdp_peer* client)
 {
 	proxyContext* pContext = (proxyContext*) client->context;
+
 	char* host = NULL;
 	DWORD port = 3389; // default port
 
@@ -315,34 +317,26 @@ BOOL pf_peer_synchronize_event(rdpInput* input, UINT32 flags)
 BOOL pf_peer_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 {
 	proxyContext* context = (proxyContext*)input->context;
-	freerdp_input_send_keyboard_event(context->peerContext->input, flags, code);
-	WLog_DBG(TAG, "Client sent a keyboard event (flags:0x%04"PRIX16" code:0x%04"PRIX16")", flags,
-	         code);
-	return TRUE;
+	return freerdp_input_send_keyboard_event(context->peerContext->input, flags, code);
 }
 
 BOOL pf_peer_unicode_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 {
-	WLog_DBG(TAG, "Client sent a unicode keyboard event (flags:0x%04"PRIX16" code:0x%04"PRIX16")",
-	         flags, code);
-	return TRUE;
+	proxyContext* context = (proxyContext*)input->context;
+	return freerdp_input_send_unicode_keyboard_event(context->peerContext->input, flags, code);
 }
 
 BOOL pf_peer_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y)
 {
 	proxyContext* context = (proxyContext*)input->context;
-	freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y);
-	WLog_DBG(TAG, "Client sent a mouse event (flags:0x%04"PRIX16" pos:%"PRIu16",%"PRIu16")", flags, x,
-	         y);
-	return TRUE;
+	return freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y);\
 }
 
 BOOL pf_peer_extended_mouse_event(rdpInput* input, UINT16 flags, UINT16 x,
                                   UINT16 y)
 {
-	WLog_DBG(TAG, "Client sent an extended mouse event (flags:0x%04"PRIX16" pos:%"PRIu16",%"PRIu16")",
-	         flags, x, y);
-	return TRUE;
+	proxyContext* context = (proxyContext*)input->context;
+	return freerdp_input_send_extended_mouse_event(context->peerContext->input, flags, x, y);
 }
 
 static BOOL pf_peer_refresh_rect(rdpContext* context, BYTE count,
@@ -422,7 +416,6 @@ static DWORD WINAPI handle_client(LPVOID arg)
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_HIGH; */
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_LOW; */
 	/* client->settings->EncryptionLevel = ENCRYPTION_LEVEL_FIPS; */
-	client->settings->RemoteFxCodec = TRUE;
 	client->settings->ColorDepth = 32;
 	client->settings->SuppressOutput = TRUE;
 	client->settings->RefreshRect = TRUE;
@@ -444,6 +437,8 @@ static DWORD WINAPI handle_client(LPVOID arg)
 	          client->local ? "(local)" : client->hostname);
 	/* Main client event handling loop */
 	HANDLE eventHandles[32];
+	HANDLE ChannelEvent;
+	ChannelEvent = WTSVirtualChannelManagerGetEventHandle(context->vcm);
 	BOOL gfxOpened = FALSE;
 
 	while (1)
@@ -460,6 +455,7 @@ static DWORD WINAPI handle_client(LPVOID arg)
 
 			eventCount += tmp;
 		}
+		eventHandles[eventCount++] = ChannelEvent;
 		eventHandles[eventCount++] = WTSVirtualChannelManagerGetEventHandle(context->vcm);
 		DWORD status = WaitForMultipleObjects(eventCount, eventHandles, FALSE, INFINITE);
 
@@ -475,6 +471,15 @@ static DWORD WINAPI handle_client(LPVOID arg)
 
 		if (client->CheckFileDescriptor(client) != TRUE)
 			break;
+
+		if (WaitForSingleObject(ChannelEvent, 0) == WAIT_OBJECT_0)
+		{
+			if (!WTSVirtualChannelManagerCheckFileDescriptor(context->vcm))
+			{
+				WLog_ERR(TAG, "WTSVirtualChannelManagerCheckFileDescriptor failure");
+				goto fail;
+			}
+		}
 
 		switch (WTSVirtualChannelManagerGetDrdynvcState(context->vcm))
 		{
