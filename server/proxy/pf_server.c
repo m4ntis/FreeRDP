@@ -329,7 +329,7 @@ BOOL pf_peer_unicode_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 BOOL pf_peer_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y)
 {
 	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y);\
+	return freerdp_input_send_mouse_event(context->peerContext->input, flags, x, y); 
 }
 
 BOOL pf_peer_extended_mouse_event(rdpInput* input, UINT16 flags, UINT16 x,
