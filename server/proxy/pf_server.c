@@ -520,13 +520,9 @@ fail:
 		(void)context->gfx->Close(context->gfx);
 	}
 
-	if (!pf_common_connection_aborted_by_peer(pContext))
+	if (client->connected && !pf_common_connection_aborted_by_peer(pContext))
 	{
 		pf_server_handle_client_disconnection(client);
-	}
-	else
-	{
-		WLog_INFO(TAG, "Connection already aborted; client potentially kicked by the server");
 	}
 
 	client->Disconnect(client);

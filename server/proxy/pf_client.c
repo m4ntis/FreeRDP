@@ -51,6 +51,15 @@
 
 #define TAG PROXY_TAG("client")
 
+/* re-negociate with original client after negociation between the proxy
+ * and the target has finished.
+ **/
+void proxy_server_reactivate(rdpContext* client, rdpContext* target)
+{
+	proxy_settings_mirror(client->settings, target->settings);
+	client->update->DesktopResize(client);
+}
+
 /* This function is called whenever a new frame starts.
  * It can be used to reset invalidated areas. */
 static BOOL pf_begin_paint(rdpContext* context)
@@ -119,6 +128,13 @@ BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bitmap)
 	return sContext->update->BitmapUpdate(sContext, bitmap);
 }
 
+BOOL pf_client_desktop_resize(rdpContext* context)
+{
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* peer = pContext->peerContext;
+	return peer->update->DesktopResize(peer);
+}
+
 /**
  * Called after a RDP connection was successfully established.
  * Settings might have changed during negociation of client / server feature
@@ -159,20 +175,14 @@ static BOOL pf_post_connect(freerdp* instance)
 	update->BeginPaint = pf_begin_paint;
 	update->EndPaint = pf_end_paint;
 	update->BitmapUpdate = pf_client_bitmap_update;
+	update->DesktopResize = pf_client_desktop_resize;
+
 	proxyContext* pContext = (proxyContext*)context;
 	rdpContext* cContext = (rdpContext*)pContext->peerContext;
 	proxy_server_reactivate(cContext, context);
 	return TRUE;
 }
 
-/* re-negociate with original client after negociation between the proxy
- * and the target has finished.
- **/
-void proxy_server_reactivate(rdpContext* client, rdpContext* target)
-{
-	proxy_context_settings_mirror(client->settings, target->settings);
-	client->update->DesktopResize(client);
-}
 
 /* This function is called whether a session ends by failure or success.
  * Clean up everything allocated by pre_connect and post_connect.
@@ -224,7 +234,7 @@ static DWORD WINAPI pf_client_thread_proc(LPVOID arg)
 
 	if (!freerdp_connect(instance))
 	{
-		WLog_ERR(TAG, "connection failure: %s", freerdp_get_last_error_string(instance->context));
+		WLog_ERR(TAG, "connection failure");
 		return 0;
 	}
 
