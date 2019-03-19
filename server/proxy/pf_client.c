@@ -139,7 +139,6 @@ BOOL pf_client_desktop_resize(rdpContext* context)
  * Called after a RDP connection was successfully established.
  * Settings might have changed during negociation of client / server feature
  * support.
- *
  * Set up local framebuffers and painting callbacks.
  * If required, register pointer callbacks to change the local mouse cursor
  * when hovering over the RDP window
@@ -165,11 +164,6 @@ static BOOL pf_post_connect(freerdp* instance)
 		}
 
 		pf_gdi_register_update_callbacks(update);
-		brush_cache_register_callbacks(instance->update);
-		glyph_cache_register_callbacks(instance->update);
-		bitmap_cache_register_callbacks(instance->update);
-		offscreen_cache_register_callbacks(instance->update);
-		palette_cache_register_callbacks(instance->update);
 	}
 
 	update->BeginPaint = pf_begin_paint;

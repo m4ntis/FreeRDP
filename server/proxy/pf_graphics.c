@@ -44,69 +44,83 @@
 /* Bitmap Class */
 static BOOL pf_Bitmap_New(rdpContext* context, rdpBitmap* bitmap)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static void pf_Bitmap_Free(rdpContext* context, rdpBitmap* bitmap)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 }
 
 static BOOL pf_Bitmap_Paint(rdpContext* context, rdpBitmap* bitmap)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static BOOL pf_Bitmap_SetSurface(rdpContext* context, rdpBitmap* bitmap,
                                  BOOL primary)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 /* Pointer Class */
 static BOOL pf_Pointer_New(rdpContext* context, rdpPointer* pointer)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static void pf_Pointer_Free(rdpContext* context, rdpPointer* pointer)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 }
 
 static BOOL pf_Pointer_Set(rdpContext* context,
                            const rdpPointer* pointer)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static BOOL pf_Pointer_SetNull(rdpContext* context)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static BOOL pf_Pointer_SetDefault(rdpContext* context)
 {
+	WLog_INFO(TAG, "%s, context = %p, pointer = %p", __FUNCTION__, context,
+	          context->graphics->Pointer_Prototype);
 	return TRUE;
 }
 
 static BOOL pf_Pointer_SetPosition(rdpContext* context, UINT32 x, UINT32 y)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 /* Glyph Class */
 static BOOL pf_Glyph_New(rdpContext* context, const rdpGlyph* glyph)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
 static void pf_Glyph_Free(rdpContext* context, rdpGlyph* glyph)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 }
 
 static BOOL pf_Glyph_Draw(rdpContext* context, const rdpGlyph* glyph, INT32 x,
                           INT32 y, INT32 w, INT32 h, INT32 sx, INT32 sy,
                           BOOL fOpRedundant)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
@@ -114,6 +128,7 @@ static BOOL pf_Glyph_BeginDraw(rdpContext* context, INT32 x, INT32 y,
                                INT32 width, INT32 height, UINT32 bgcolor,
                                UINT32 fgcolor, BOOL fOpRedundant)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
@@ -121,6 +136,7 @@ static BOOL pf_Glyph_EndDraw(rdpContext* context, INT32 x, INT32 y,
                              INT32 width, INT32 height,
                              UINT32 bgcolor, UINT32 fgcolor)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	return TRUE;
 }
 
