@@ -85,6 +85,7 @@ static BOOL pf_gdi_multi_opaque_rect(rdpContext* context,
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyContext* pContext = (proxyContext*)context;
 	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+
 	return IFCALLRESULT(FALSE, sContext->update->primary->MultiOpaqueRect, sContext, multi_opaque_rect);
 }
 
@@ -297,7 +298,7 @@ void pf_gdi_register_update_callbacks(rdpUpdate* update)
 	update->secondary->CacheBitmap = pf_update_send_cache_bitmap;
 	update->secondary->CacheBitmapV2 = pf_update_send_cache_bitmap_v2;
 	update->secondary->CacheBitmapV3 = pf_update_send_cache_bitmap_v3;
-	//update->SurfaceFrameAcknowledge = pf_gdi_surface_frame_ack;
+	update->SurfaceFrameAcknowledge = pf_gdi_surface_frame_ack;
 	update->primary->GlyphIndex = pf_gdi_glyph_index;
 	update->primary->FastIndex = pf_gdi_fast_index;
 	update->primary->FastGlyph = pf_gdi_fast_glyph;
