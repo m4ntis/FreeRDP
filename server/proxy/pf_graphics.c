@@ -46,80 +46,116 @@
 static BOOL pf_Bitmap_New(rdpContext* context, rdpBitmap* bitmap)
 {
 		WLog_INFO(TAG, __FUNCTION__);
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Bitmap_Prototype->New, sContext, bitmap);
 }
 
 static void pf_Bitmap_Free(rdpContext* context, rdpBitmap* bitmap)
 {
 			WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	
+	IFCALL(sContext->graphics->Bitmap_Prototype->Free, sContext, bitmap);
 }
 
 static BOOL pf_Bitmap_Paint(rdpContext* context, rdpBitmap* bitmap)
 {
 		WLog_INFO(TAG, __FUNCTION__);
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Bitmap_Prototype->Paint, sContext, bitmap);
 }
 
 static BOOL pf_Bitmap_SetSurface(rdpContext* context, rdpBitmap* bitmap,
                                  BOOL primary)
 {
 		WLog_INFO(TAG, __FUNCTION__);
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Bitmap_Prototype->SetSurface, sContext, bitmap, primary);
 }
 
 /* Pointer Class */
 static BOOL pf_Pointer_New(rdpContext* context, rdpPointer* pointer)
 {
 	WLog_INFO(TAG, __FUNCTION__);
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+
+	if (!sContext || !pointer || !sContext->gdi)
+		return FALSE;
+	return IFCALLRESULT(FALSE, sContext->graphics->Pointer_Prototype->New, sContext, pointer);
 }
 
 static void pf_Pointer_Free(rdpContext* context, rdpPointer* pointer)
 {
 	WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	IFCALL(sContext->graphics->Pointer_Prototype->Free, sContext, pointer);
 }
 
 static BOOL pf_Pointer_Set(rdpContext* context,
                            const rdpPointer* pointer)
 {
-	WLog_INFO(TAG, __FUNCTION__);
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+		if (!sContext || !pointer || !sContext->gdi)
+		return FALSE;
 
-		return TRUE;
+	return IFCALLRESULT(FALSE, sContext->graphics->Pointer_Prototype->Set, sContext, pointer);
 }
 
 static BOOL pf_Pointer_SetNull(rdpContext* context)
 {
-	WLog_INFO(TAG, __FUNCTION__);
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+		if (!sContext || !sContext->gdi)
+		return FALSE;
 
-		return TRUE;
+	return IFCALLRESULT(FALSE, sContext->graphics->Pointer_Prototype->SetNull, sContext);
 }
 
 static BOOL pf_Pointer_SetDefault(rdpContext* context)
 {
-	WLog_INFO(TAG, __FUNCTION__);
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	if (!sContext || !sContext->gdi)
+		return FALSE;
 
-		return TRUE;
+	return IFCALLRESULT(FALSE, sContext->graphics->Pointer_Prototype->SetDefault, sContext);
 }
 
 static BOOL pf_Pointer_SetPosition(rdpContext* context, UINT32 x, UINT32 y)
 {
-	WLog_INFO(TAG, __FUNCTION__);
-
-		return TRUE;
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Pointer_Prototype->SetPosition, sContext, x, y);
 }
 
 /* Glyph Class */
 static BOOL pf_Glyph_New(rdpContext* context, const rdpGlyph* glyph)
 {
-	WLog_INFO(TAG, __FUNCTION__);
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Glyph_Prototype->New, sContext, glyph);
 
-		return TRUE;
+	return TRUE;
 }
 
 static void pf_Glyph_Free(rdpContext* context, rdpGlyph* glyph)
 {
-	WLog_INFO(TAG, __FUNCTION__);
-
+		WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+		return IFCALLRESULT(FALSE, sContext->graphics->Glyph_Prototype->Free, sContext, glyph);
 
 }
 
@@ -128,26 +164,28 @@ static BOOL pf_Glyph_Draw(rdpContext* context, const rdpGlyph* glyph, INT32 x,
                           BOOL fOpRedundant)
 {
 	WLog_INFO(TAG, __FUNCTION__);
-
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Glyph_Prototype->Draw, sContext, glyph, x, y, w, h, sx, sy, fOpRedundant);
 }
 
 static BOOL pf_Glyph_BeginDraw(rdpContext* context, INT32 x, INT32 y,
                                INT32 width, INT32 height, UINT32 bgcolor,
                                UINT32 fgcolor, BOOL fOpRedundant)
 {
-	WLog_INFO(TAG, __FUNCTION__);
-
-		return TRUE;
+WLog_INFO(TAG, __FUNCTION__);
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Glyph_Prototype->BeginDraw, sContext, x, y, width, height, bgcolor, fgcolor, fOpRedundant);
 }
 
 static BOOL pf_Glyph_EndDraw(rdpContext* context, INT32 x, INT32 y,
                              INT32 width, INT32 height,
                              UINT32 bgcolor, UINT32 fgcolor)
 {
-	WLog_INFO(TAG, __FUNCTION__);
-
-		return TRUE;
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return IFCALLRESULT(FALSE, sContext->graphics->Glyph_Prototype->EndDraw, sContext, x, y, width, height, bgcolor, fgcolor);
 }
 
 /* Graphics Module */

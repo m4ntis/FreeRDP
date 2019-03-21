@@ -80,6 +80,7 @@ static BOOL pf_end_paint(rdpContext* context)
 	return sContext->update->EndPaint(sContext);
 }
 
+
 /**
  * Called before a connection is established.
  *
@@ -91,11 +92,22 @@ static BOOL pf_pre_connect(freerdp* instance)
 	rdpSettings* settings = instance->settings;
 	settings->OsMajorType = OSMAJORTYPE_UNIX;
 	settings->OsMinorType = OSMINORTYPE_NATIVE_XSERVER;
+
+		
+	// settings->BitmapCacheEnabled = FALSE;
+	// settings->DrawGdiPlusCacheEnabled = FALSE;
+	// settings->CompressionEnabled = FALSE;
+	// settings->BitmapCachePersistEnabled = FALSE;
+
+	proxyContext* pContext = (proxyContext*)instance->context;
+	rdpContext* sContext = pContext->peerContext;
 	/**
 	 * settings->OrderSupport is initialized at this point.
 	 * Only override it if you plan to implement custom order
 	 * callbacks or deactiveate certain features.
 	 */
+
+	
 	/**
 	 * Register the channel listeners.
 	 * They are required to set up / tear down channels if they are loaded.
@@ -116,6 +128,8 @@ static BOOL pf_pre_connect(freerdp* instance)
 		WLog_ERR(TAG, "Failed to load addins");
 		return FALSE;
 	}
+//settings->AllowUnanouncedOrdersFromServer = TRUE;
+
 
 	return TRUE;
 }
@@ -128,13 +142,23 @@ BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bitmap)
 	return sContext->update->BitmapUpdate(sContext, bitmap);
 }
 
+BOOL pf_Palette(rdpContext* context, const PALETTE_UPDATE* palette)
+{
+	proxyContext* pContext = (proxyContext*)context;
+	rdpContext* sContext = (rdpContext*)pContext->peerContext;
+	return sContext->update->Palette(sContext, palette);
+}
+
 BOOL pf_client_desktop_resize(rdpContext* context)
 {
+	WLog_INFO(TAG, __FUNCTION__);
 	proxyContext* pContext = (proxyContext*)context;
 	rdpContext* peer = pContext->peerContext;
 	return peer->update->DesktopResize(peer);
 }
 
+
+//0x7fffe8093640
 /**
  * Called after a RDP connection was successfully established.
  * Settings might have changed during negociation of client / server feature
@@ -150,6 +174,7 @@ static BOOL pf_post_connect(freerdp* instance)
 
 	rdpContext* context = instance->context;
 	rdpSettings* settings = instance->settings;
+	printf("negotiated with support=%i\n", settings->OffscreenSupportLevel);
 	rdpUpdate* update = instance->update;
 
 	if (!pf_register_pointer(context->graphics))
@@ -166,16 +191,21 @@ static BOOL pf_post_connect(freerdp* instance)
 		pf_gdi_register_update_callbacks(update);
 	}
 
+
 	update->BeginPaint = pf_begin_paint;
 	update->EndPaint = pf_end_paint;
 	update->BitmapUpdate = pf_client_bitmap_update;
 	update->DesktopResize = pf_client_desktop_resize;
+	update->Palette = pf_Palette;
 	proxyContext* pContext = (proxyContext*)context;
 	rdpContext* cContext = (rdpContext*)pContext->peerContext;
 	proxy_server_reactivate(cContext, context);
 	return TRUE;
 }
 
+
+// typedef BOOL (*pNetworkCharacteristicsResult)(rdpContext* context, UINT16 sequenceNumber);
+// typedef BOOL (*pClientBandwidthMeasureResult)(rdpContext* context, rdpAutoDetect* data);
 
 /* This function is called whether a session ends by failure or success.
  * Clean up everything allocated by pre_connect and post_connect.

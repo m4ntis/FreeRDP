@@ -8,6 +8,11 @@ BOOL pf_common_connection_aborted_by_peer(proxyContext* context)
 void pf_common_copy_settings(rdpSettings* dst, rdpSettings* src)
 {
 	/* Client/server CORE options */
+
+	dst->RdpSecurity = src->RdpSecurity;
+	dst->TlsSecurity = src->TlsSecLevel;
+	dst->NlaSecurity = src->NlaSecurity;
+	
 	dst->RdpVersion = src->RdpVersion;
 	dst->DesktopWidth = src->DesktopWidth;
 	dst->DesktopHeight = src->DesktopHeight;

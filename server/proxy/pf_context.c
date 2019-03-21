@@ -60,6 +60,7 @@ rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings, char* ho
 	pf_common_copy_settings(settings, clientSettings);
 	settings->Username = _strdup(clientSettings->Username);
 	settings->Password = _strdup(clientSettings->Password);
+
 	settings->ServerHostname = host;
 	settings->ServerPort = port;
 	settings->SoftwareGdi = FALSE;
