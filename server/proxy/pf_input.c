@@ -23,37 +23,35 @@
 
 BOOL pf_server_synchronize_event(rdpInput* input, UINT32 flags)
 {
-	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_synchronize_event(context->peerContext->input,
-	        flags);
+	clientToProxyContext* context = (clientToProxyContext*)input->context;
+	return freerdp_input_send_synchronize_event(context->peer->c.input, flags);
 }
 
 BOOL pf_server_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 {
-	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_keyboard_event(context->peerContext->input,
-	        flags, code);
+	clientToProxyContext* context = (clientToProxyContext*)input->context;
+	return freerdp_input_send_keyboard_event(context->peer->c.input, flags,
+	        code);
 }
 
 BOOL pf_server_unicode_keyboard_event(rdpInput* input, UINT16 flags, UINT16 code)
 {
-	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_unicode_keyboard_event(context->peerContext->input,
+	clientToProxyContext* context = (clientToProxyContext*)input->context;
+	return freerdp_input_send_unicode_keyboard_event(context->peer->c.input,
 	        flags, code);
 }
 
 BOOL pf_server_mouse_event(rdpInput* input, UINT16 flags, UINT16 x, UINT16 y)
 {
-	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_mouse_event(context->peerContext->input,
-	                                      flags, x, y);
+	clientToProxyContext* context = (clientToProxyContext*)input->context;
+	return freerdp_input_send_mouse_event(context->peer->c.input, flags, x, y);
 }
 
 BOOL pf_server_extended_mouse_event(rdpInput* input, UINT16 flags, UINT16 x,
                                     UINT16 y)
 {
-	proxyContext* context = (proxyContext*)input->context;
-	return freerdp_input_send_extended_mouse_event(context->peerContext->input,
+	clientToProxyContext* context = (clientToProxyContext*)input->context;
+	return freerdp_input_send_extended_mouse_event(context->peer->c.input,
 	        flags, x, y);
 }
 

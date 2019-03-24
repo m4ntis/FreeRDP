@@ -55,7 +55,7 @@ BOOL init_client_to_proxy_context(freerdp_peer* client)
 	return freerdp_peer_context_new(client);
 }
 
-rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings,
+proxyToServerContext* proxy_to_server_context_create(rdpSettings* clientSettings,
         char* host, DWORD port)
 {
 	RDP_CLIENT_ENTRY_POINTS clientEntryPoints;
@@ -75,5 +75,5 @@ rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings,
 	settings->ServerPort = port;
 	settings->SoftwareGdi = FALSE;
 	settings->RedirectClipboard = FALSE;
-	return context;
+	return (proxyToServerContext*)context;
 }

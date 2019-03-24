@@ -24,17 +24,17 @@
 BOOL pf_server_refresh_rect(rdpContext* context, BYTE count,
                             const RECTANGLE_16* areas)
 {
-	proxyContext* pContext = (proxyContext*) context;
-	return pContext->peerContext->update->RefreshRect(pContext->peerContext,
-	        count, areas);
+	clientToProxyContext* clientToProxy = (clientToProxyContext*) context;
+	proxyToServerContext* peer = clientToProxy->peer;
+	return peer->c.update->RefreshRect(&peer->c, count, areas);
 }
 
 BOOL pf_server_suppress_output(rdpContext* context, BYTE allow,
                                const RECTANGLE_16* area)
 {
-	proxyContext* pContext = (proxyContext*) context;
-	return pContext->peerContext->update->SuppressOutput(pContext->peerContext,
-	        allow, area);
+	clientToProxyContext* clientToProxy = (clientToProxyContext*) context;
+	proxyToServerContext* peer = clientToProxy->peer;
+	return peer->c.update->SuppressOutput(&peer->c, allow, area);
 }
 
 void register_update_callbacks(rdpUpdate* update)

@@ -52,13 +52,13 @@
 #define TAG PROXY_TAG("client")
 
 /**
- * Re-negociate with original client after negociation between the proxy
+ * Re-negotiate with original client after negotiation between the proxy
  * and the target has finished.
  */
-void proxy_server_reactivate(rdpContext* client, rdpContext* target)
+void proxy_server_reactivate(clientToProxyContext* client, proxyToServerContext* target)
 {
-	pf_common_copy_settings(client->settings, target->settings);
-	client->update->DesktopResize(client);
+	pf_common_copy_settings(client->c.settings, target->c.settings);
+	client->c.update->DesktopResize(&client->c);
 }
 
 /**
@@ -67,9 +67,9 @@ void proxy_server_reactivate(rdpContext* client, rdpContext* target)
  */
 static BOOL pf_client_begin_paint(rdpContext* context)
 {
-	proxyContext* pContext = (proxyContext*)context;
-	rdpContext* sContext = (rdpContext*)pContext->peerContext;
-	return sContext->update->BeginPaint(sContext);
+	proxyToServerContext* proxyToServer = (proxyToServerContext*)context;
+	clientToProxyContext* peer = proxyToServer->peer;
+	return peer->c.update->BeginPaint(&peer->c);
 }
 
 /**
@@ -79,9 +79,9 @@ static BOOL pf_client_begin_paint(rdpContext* context)
  */
 static BOOL pf_client_end_paint(rdpContext* context)
 {
-	proxyContext* pContext = (proxyContext*)context;
-	rdpContext* sContext = (rdpContext*)pContext->peerContext;
-	return sContext->update->EndPaint(sContext);
+	proxyToServerContext* proxyToServer = (proxyToServerContext*)context;
+	clientToProxyContext* peer = proxyToServer->peer;
+	return peer->c.update->EndPaint(&peer->c);
 }
 
 /**
@@ -127,21 +127,21 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 
 BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bitmap)
 {
-	proxyContext* pContext = (proxyContext*)context;
-	rdpContext* sContext = (rdpContext*)pContext->peerContext;
-	return sContext->update->BitmapUpdate(sContext, bitmap);
+	proxyToServerContext* proxyToServer = (proxyToServerContext*)context;
+	clientToProxyContext* peer = proxyToServer->peer;
+	return peer->c.update->BitmapUpdate(&peer->c, bitmap);
 }
 
 BOOL pf_client_desktop_resize(rdpContext* context)
 {
-	proxyContext* pContext = (proxyContext*)context;
-	rdpContext* peer = pContext->peerContext;
-	return peer->update->DesktopResize(peer);
+	proxyToServerContext* proxyToServer = (proxyToServerContext*)context;
+	clientToProxyContext* peer = proxyToServer->peer;
+	return peer->c.update->DesktopResize(&peer->c);
 }
 
 /**
  * Called after a RDP connection was successfully established.
- * Settings might have changed during negociation of client / server feature
+ * Settings might have changed during negotiation of client / server feature
  * support.
  *
  * Set up local framebuffers and painting callbacks.
@@ -150,19 +150,20 @@ BOOL pf_client_desktop_resize(rdpContext* context)
  */
 static BOOL pf_client_post_connect(freerdp* instance)
 {
+	rdpSettings* settings = instance->settings;
+	rdpUpdate* update = instance->update;
+	proxyToServerContext* context = (proxyToServerContext*)instance->context;
+	clientToProxyContext* peer = context->peer;
+
 	if (!gdi_init(instance, PIXEL_FORMAT_XRGB32))
 		return FALSE;
 
-	rdpContext* context = instance->context;
-	rdpSettings* settings = instance->settings;
-	rdpUpdate* update = instance->update;
-
-	if (!pf_register_pointer(context->graphics))
+	if (!pf_register_pointer(context->c.graphics))
 		return FALSE;
 
 	if (!settings->SoftwareGdi)
 	{
-		if (!pf_register_graphics(context->graphics))
+		if (!pf_register_graphics(context->c.graphics))
 		{
 			WLog_ERR(TAG, "failed to register graphics");
 			return FALSE;
@@ -180,9 +181,7 @@ static BOOL pf_client_post_connect(freerdp* instance)
 	update->EndPaint = pf_client_end_paint;
 	update->BitmapUpdate = pf_client_bitmap_update;
 	update->DesktopResize = pf_client_desktop_resize;
-	proxyContext* pContext = (proxyContext*)context;
-	rdpContext* cContext = (rdpContext*)pContext->peerContext;
-	proxy_server_reactivate(cContext, context);
+	proxy_server_reactivate(peer, context);
 	return TRUE;
 }
 
@@ -193,6 +192,7 @@ static BOOL pf_client_post_connect(freerdp* instance)
 static void pf_client_post_disconnect(freerdp* instance)
 {
 	proxyToServerContext* context;
+	clientToProxyContext* peer;
 
 	if (!instance)
 		return;
@@ -201,20 +201,18 @@ static void pf_client_post_disconnect(freerdp* instance)
 		return;
 
 	context = (proxyToServerContext*) instance->context;
-	proxyContext* pContext = (proxyContext*)context;
+	peer = context->peer;
 	PubSub_UnsubscribeChannelConnected(instance->context->pubSub,
 	                                   pf_OnChannelConnectedEventHandler);
 	PubSub_UnsubscribeChannelDisconnected(instance->context->pubSub,
 	                                      pf_OnChannelDisconnectedEventHandler);
 	gdi_free(instance);
-	rdpContext* cContext = pContext->peerContext;
 
-	if (!pf_common_connection_aborted_by_peer(pContext))
+	if (!(WaitForSingleObject(context->connectionClosed, 0) == WAIT_OBJECT_0))
 	{
-		SetEvent(pContext->connectionClosed);
+		SetEvent(context->connectionClosed);
 		WLog_INFO(TAG, "connectionClosed event is not set; closing connection with client");
-		freerdp_peer* peer = cContext->peer;
-		peer->Disconnect(peer);
+		peer->c.peer->Disconnect(peer->c.peer);
 	}
 
 	/*

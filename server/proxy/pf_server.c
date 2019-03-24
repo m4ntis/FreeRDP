@@ -191,18 +191,17 @@ BOOL pf_server_rdpgfx_init(clientToProxyContext* cContext)
 
 void pf_server_handle_client_disconnection(freerdp_peer* client)
 {
-	proxyContext* pContext = (proxyContext*)client->context;
-	clientToProxyContext* cContext = (clientToProxyContext*)client->context;
-	rdpContext* sContext = pContext->peerContext;
+	clientToProxyContext* context = (clientToProxyContext*)client->context;
+	proxyToServerContext* peer = context->peer;
 	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s",
-	          client->hostname, sContext->settings->ServerHostname);
-	/* Mark connection closed for sContext */
-	SetEvent(pContext->connectionClosed);
-	freerdp_abort_connect(sContext->instance);
+	          client->hostname, peer->c.settings->ServerHostname);
+	/* Mark connection as closed */
+	SetEvent(context->connectionClosed);
+	freerdp_abort_connect(peer->c.instance);
 	/* Close connection to remote host */
 	WLog_DBG(TAG, "Waiting for proxy's client thread to finish");
-	WaitForSingleObject(cContext->thread, INFINITE);
-	CloseHandle(cContext->thread);
+	WaitForSingleObject(context->thread, INFINITE);
+	CloseHandle(context->thread);
 }
 
 static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
@@ -242,9 +241,8 @@ static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
  */
 BOOL pf_server_post_connect(freerdp_peer* client)
 {
-	proxyContext* pContext = (proxyContext*) client->context;
-	rdpContext* sContext;
-	clientToProxyContext* cContext;
+	clientToProxyContext* context = (clientToProxyContext*)client->context;
+	proxyToServerContext* peer;
 	HANDLE connectionClosedEvent;
 	char* host = NULL;
 	DWORD port = 3389; // default port
@@ -255,19 +253,16 @@ BOOL pf_server_post_connect(freerdp_peer* client)
 		return FALSE;
 	}
 
-	/* Start a proxy's client in it's own thread */
-	sContext = proxy_to_server_context_create(client->settings, host, port);
-	/* Inject proxy's client context to proxy's context */
+	peer = proxy_to_server_context_create(client->settings, host, port);
+	context->peer = peer;
+	peer->peer = context;
 	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	pContext->peerContext = sContext;
-	pContext->connectionClosed = connectionClosedEvent;
-	((proxyContext*)sContext)->peerContext = (rdpContext*)pContext;
-	((proxyContext*)sContext)->connectionClosed = connectionClosedEvent;
-	cContext = (clientToProxyContext*)client->context;
-	pf_server_rdpgfx_init(cContext);
+	context->connectionClosed = connectionClosedEvent;
+	peer->connectionClosed = connectionClosedEvent;
+	pf_server_rdpgfx_init(context);
 
-	if (!(cContext->thread = CreateThread(NULL, 0, pf_client_start, sContext, 0,
-	                                      NULL)))
+	if (!(context->thread = CreateThread(NULL, 0, pf_client_start, peer, 0,
+	                                     NULL)))
 	{
 		WLog_ERR(TAG, "CreateThread failed!");
 		return FALSE;
@@ -297,7 +292,6 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	DWORD status;
 	freerdp_peer* client = (freerdp_peer*) arg;
 	clientToProxyContext* context;
-	proxyContext* pContext;
 
 	if (!init_client_to_proxy_context(client))
 	{
@@ -306,7 +300,6 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	}
 
 	context = (clientToProxyContext*) client->context;
-	pContext = (proxyContext*)context;
 	client->settings->SupportGraphicsPipeline = TRUE;
 	client->settings->SupportDynamicChannels = TRUE;
 	/* TODO: Read path from config and default to /etc */
@@ -363,7 +356,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 		if (status == WAIT_FAILED)
 		{
 			/* Ignore wait fails that are caused by legitimate client disconnections */
-			if (pf_common_connection_aborted_by_peer(pContext))
+			if (WaitForSingleObject(context->connectionClosed, 0) == WAIT_OBJECT_0)
 				break;
 
 			WLog_ERR(TAG, "WaitForMultipleObjects failed (errno: %d)", errno);
@@ -428,13 +421,13 @@ fail:
 		(void)context->gfx->Close(context->gfx);
 	}
 
-	if (client->connected && !pf_common_connection_aborted_by_peer(pContext))
+	if (client->connected && !(WaitForSingleObject(context->connectionClosed, 0) == WAIT_OBJECT_0))
 	{
 		pf_server_handle_client_disconnection(client);
 	}
 
-	freerdp_client_stop(pContext->peerContext);
-	freerdp_client_context_free(pContext->peerContext);
+	freerdp_client_stop((rdpContext*)context->peer);
+	freerdp_client_context_free((rdpContext*)context->peer);
 	client->Disconnect(client);
 	freerdp_peer_context_free(client);
 	freerdp_peer_free(client);

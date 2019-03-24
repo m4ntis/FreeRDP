@@ -28,39 +28,30 @@
 #include <freerdp/client/rdpgfx.h>
 #include <freerdp/server/rdpgfx.h>
 
-/**
- * Proxy context wraps a peer's context, and holds a reference to the other end
- * of the connection. This lets one side of the proxy to forward events to the
- * other.
- */
-struct proxy_context
-{
-	/* Context of client or server */
-	rdpContext _context;
-
-	/**
-	 * Context of peer to which the proxy is connected.
-	 * Events from the first context are forwarded to this one.
-	 */
-	rdpContext* peerContext;
-
-	HANDLE connectionClosed;
-};
-typedef struct proxy_context proxyContext;
+typedef struct client_to_proxy_context clientToProxyContext;
+typedef struct proxy_to_server_context proxyToServerContext;
 
 /**
  * Context used for the client's connection to the proxy.
  */
 struct client_to_proxy_context
 {
-	proxyContext _context;
+	/* Underlying context of the client connection */
+	rdpContext c;
 
+	/**
+	 * Context of the proxy's connection to the target server.
+	 * Events from the client's context are forwarded to this one.
+	 */
+	proxyToServerContext* peer;
+	HANDLE connectionClosed;
+
+	/* Client to proxy related context */
 	HANDLE vcm;
 	HANDLE thread;
 
 	RdpgfxServerContext* gfx;
 };
-typedef struct client_to_proxy_context clientToProxyContext;
 
 BOOL init_client_to_proxy_context(freerdp_peer* client);
 
@@ -69,14 +60,22 @@ BOOL init_client_to_proxy_context(freerdp_peer* client);
  */
 struct proxy_to_server_context
 {
-	proxyContext _context;
+	/* Underlying context of the server connection */
+	rdpContext c;
+
+	/**
+	 * Context of the proxy's connection to the client.
+	 * Events from the server's context are forwarded to this one.
+	 */
+	clientToProxyContext* peer;
+	HANDLE connectionClosed;
 
 	RdpeiClientContext* rdpei;
 	RdpgfxClientContext* gfx;
 	EncomspClientContext* encomsp;
 };
-typedef struct proxy_to_server_context proxyToServerContext;
 
-rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings, char* host, DWORD port);
+proxyToServerContext* proxy_to_server_context_create(rdpSettings* clientSettings, char* host,
+        DWORD port);
 
 #endif /* FREERDP_SERVER_PROXY_PFCONTEXT_H */
