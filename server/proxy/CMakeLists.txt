@@ -39,6 +39,8 @@ set(${MODULE_PREFIX}_SRCS
   pf_common.h
   pf_gdi.c
   pf_gdi.h
+  pf_config.c
+  pf_config.h
   pf_graphics.c
   pf_graphics.h
   pf_log.h)

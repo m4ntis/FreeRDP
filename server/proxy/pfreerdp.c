@@ -19,11 +19,14 @@
  */
 
 #include "pf_server.h"
+#include "pf_config.h"
+#include "pf_log.h"
 
 int main(int argc, char* argv[])
 {
-	char* host = "0.0.0.0";
-	long port = 3389;
-	BOOL localOnly = FALSE;
-	return pf_server_start(host, port, localOnly);
+	proxyConfig config;
+	
+	pf_server_load_config("config.ini", &config);
+	WLog_INFO(TAG, "Configuration loaded. gfx = %i, keyboard = %i", config.gfx, config.keyboard);
+	return pf_server_start(&config);
 }

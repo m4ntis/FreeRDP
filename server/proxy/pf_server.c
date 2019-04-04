@@ -42,6 +42,7 @@
 #include "pf_server.h"
 #include "pf_common.h"
 #include "pf_log.h"
+#include "pf_config.h"
 #include "pf_client.h"
 #include "pf_context.h"
 #include "pf_input.h"
@@ -491,7 +492,7 @@ void pf_server_mainloop(freerdp_listener* listener)
 	listener->Close(listener);
 }
 
-int pf_server_start(char* host, long port, BOOL localOnly)
+int pf_server_start(proxyConfig* config)
 {
 	char* localSockPath;
 	char localSockName[MAX_PATH];
@@ -513,7 +514,7 @@ int pf_server_start(char* host, long port, BOOL localOnly)
 	}
 
 	/* Determine filepath for local socket */
-	sprintf_s(localSockName, sizeof(localSockName), "proxy.%ld", port);
+	sprintf_s(localSockName, sizeof(localSockName), "proxy.%"PRIu16"", config->port);
 	localSockPath = GetKnownSubPath(KNOWN_PATH_TEMP, localSockName);
 
 	if (!localSockPath)
@@ -527,9 +528,9 @@ int pf_server_start(char* host, long port, BOOL localOnly)
 	success = listener->OpenLocal(listener, localSockPath);
 
 	/* Listen to remote connections */
-	if (!localOnly)
+	if (!config->localOnly)
 	{
-		success &= listener->Open(listener, host, port);
+		success &= listener->Open(listener, config->host, config->port);
 	}
 
 	if (success)

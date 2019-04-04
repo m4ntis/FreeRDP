@@ -18,9 +18,33 @@
  * limitations under the License.
  */
 
-#include <libfreerdp/core/listener.h>
-#include "pf_config.h"
+#ifndef FREERDP_SERVER_PROXY_PFCONFIG_H
+#define FREERDP_SERVER_PROXY_PFCONFIG_H
 
-#define TAG PROXY_TAG("server")
+#include <winpr/ini.h>
 
-int pf_server_start(proxyConfig* config);
+struct proxy_config {
+    /* general */
+    char* host;
+    BOOL  localOnly;
+    UINT16 port;
+
+    /* graphics */
+    BOOL gfx;
+    BOOL bitmapUpdate;
+
+    /* input */
+    BOOL keyboard;
+    BOOL mouse;
+
+    /* security */
+    BOOL nlaSupported;
+    BOOL tlsSupported;
+    BOOL rdpSupported;
+};
+
+typedef struct proxy_config proxyConfig;
+
+BOOL pf_server_load_config(char* path, proxyConfig* config);
+
+#endif /* FREERDP_SERVER_PROXY_PFCONFIG_H */
