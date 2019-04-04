@@ -23,24 +23,25 @@
 
 #include <winpr/ini.h>
 
-struct proxy_config {
-    /* general */
-    char* host;
-    BOOL  localOnly;
-    UINT16 port;
+struct proxy_config
+{
+	/* general */
+	char* host;
+	BOOL  localOnly;
+	UINT16 port;
 
-    /* graphics */
-    BOOL gfx;
-    BOOL bitmapUpdate;
+	/* graphics */
+	BOOL gfx;
+	BOOL bitmapUpdate;
 
-    /* input */
-    BOOL keyboard;
-    BOOL mouse;
+	/* input */
+	BOOL keyboard;
+	BOOL mouse;
 
-    /* security */
-    BOOL nlaSupported;
-    BOOL tlsSupported;
-    BOOL rdpSupported;
+	/* security */
+	BOOL nlaSupported;
+	BOOL tlsSupported;
+	BOOL rdpSupported;
 };
 
 typedef struct proxy_config proxyConfig;
