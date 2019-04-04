@@ -37,7 +37,7 @@ BOOL pf_server_suppress_output(rdpContext* context, BYTE allow,
 	        allow, area);
 }
 
-void register_update_callbacks(rdpUpdate* update)
+void pf_server_register_update_callbacks(rdpUpdate* update)
 {
 	update->RefreshRect = pf_server_refresh_rect;
 	update->SuppressOutput = pf_server_suppress_output;

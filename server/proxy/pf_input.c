@@ -57,7 +57,7 @@ BOOL pf_server_extended_mouse_event(rdpInput* input, UINT16 flags, UINT16 x,
 	        flags, x, y);
 }
 
-void register_input_callbacks(rdpInput* input)
+void pf_server_register_input_callbacks(rdpInput* input)
 {
 	input->SynchronizeEvent = pf_server_synchronize_event;
 	input->KeyboardEvent = pf_server_keyboard_event;

@@ -26,6 +26,7 @@ int main(int argc, char* argv[])
 {
 	proxyConfig config;
 	pf_server_load_config("config.ini", &config);
-	WLog_INFO(TAG, "Configuration loaded. gfx = %i, keyboard = %i", config.gfx, config.keyboard);
+	WLog_INFO(TAG, "Configuration loaded. GFX = %i, Keyboard = %i",
+	          config.GFX, config.Keyboard);
 	return pf_server_start(&config);
 }

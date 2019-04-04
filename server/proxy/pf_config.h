@@ -26,22 +26,22 @@
 struct proxy_config
 {
 	/* general */
-	char* host;
-	BOOL  localOnly;
-	UINT16 port;
+	const char* Host;
+	UINT16 Port;
+	BOOL  LocalOnly;
 
 	/* graphics */
-	BOOL gfx;
-	BOOL bitmapUpdate;
+	BOOL GFX;
+	BOOL BitmapUpdate;
 
 	/* input */
-	BOOL keyboard;
-	BOOL mouse;
+	BOOL Keyboard;
+	BOOL Mouse;
 
 	/* security */
-	BOOL nlaSupported;
-	BOOL tlsSupported;
-	BOOL rdpSupported;
+	BOOL NlaSupport;
+	BOOL TlsSupport;
+	BOOL RdpSupport;
 };
 
 typedef struct proxy_config proxyConfig;

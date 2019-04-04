@@ -335,8 +335,8 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	client->settings->RefreshRect = TRUE;
 	client->PostConnect = pf_server_post_connect;
 	client->Activate = pf_server_activate;
-	register_input_callbacks(client->input);
-	register_update_callbacks(client->update);
+	pf_server_register_input_callbacks(client->input);
+	pf_server_register_update_callbacks(client->update);
 	client->settings->MultifragMaxRequestSize = 0xFFFFFF; /* FIXME */
 	client->Initialize(client);
 	WLog_INFO(TAG, "Client connected: %s",
@@ -513,7 +513,7 @@ int pf_server_start(proxyConfig* config)
 	}
 
 	/* Determine filepath for local socket */
-	sprintf_s(localSockName, sizeof(localSockName), "proxy.%"PRIu16"", config->port);
+	sprintf_s(localSockName, sizeof(localSockName), "proxy.%"PRIu16"", config->Port);
 	localSockPath = GetKnownSubPath(KNOWN_PATH_TEMP, localSockName);
 
 	if (!localSockPath)
@@ -527,9 +527,9 @@ int pf_server_start(proxyConfig* config)
 	success = listener->OpenLocal(listener, localSockPath);
 
 	/* Listen to remote connections */
-	if (!config->localOnly)
+	if (!config->LocalOnly)
 	{
-		success &= listener->Open(listener, config->host, config->port);
+		success &= listener->Open(listener, config->Host, config->Port);
 	}
 
 	if (success)
