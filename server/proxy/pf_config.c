@@ -18,14 +18,22 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+#include <string.h>
+#include <winpr/crt.h>
 #include "pf_config.h"
 
 BOOL pf_server_load_config(char* path, proxyConfig* config)
 {
 	wIniFile* ini = IniFile_New();
-	IniFile_ReadFile(ini, path);
+	if (IniFile_ReadFile(ini, path) < 0)
+	{
+		IniFile_Free(ini);
+		return FALSE;
+	}
+
 	/* general */
-	config->Host = IniFile_GetKeyValueString(ini, "General", "Host");
+	config->Host = _strdup(IniFile_GetKeyValueString(ini, "General", "Host"));
 	config->LocalOnly = IniFile_GetKeyValueInt(ini, "General", "LocalOnly");
 	config->Port = IniFile_GetKeyValueInt(ini, "General", "Port");
 	/* graphics */
@@ -38,6 +46,13 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 	config->TlsSupport = IniFile_GetKeyValueInt(ini, "Security", "TlsSupport");
 	config->NlaSupport = IniFile_GetKeyValueInt(ini, "Security", "NlaSupport");
 	config->RdpSupport = IniFile_GetKeyValueInt(ini, "Security", "RdpSupport");
-	/* TODO: Add error handling in config parsing, if needed */
+
+	IniFile_Free(ini);
 	return TRUE;
+}
+
+void pf_server_config_free(proxyConfig* config)
+{
+	free(config->Host);
+	free(config);
 }

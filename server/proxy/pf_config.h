@@ -26,7 +26,7 @@
 struct proxy_config
 {
 	/* general */
-	const char* Host;
+	char* Host;
 	UINT16 Port;
 	BOOL  LocalOnly;
 
@@ -47,5 +47,6 @@ struct proxy_config
 typedef struct proxy_config proxyConfig;
 
 BOOL pf_server_load_config(char* path, proxyConfig* config);
+void pf_server_config_free(proxyConfig* config);
 
 #endif /* FREERDP_SERVER_PROXY_PFCONFIG_H */
