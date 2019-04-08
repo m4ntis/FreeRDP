@@ -19,14 +19,31 @@
  */
 
 #include "pf_server.h"
+#include "proxy.h"
 #include "pf_config.h"
 #include "pf_log.h"
 
 int main(int argc, char* argv[])
 {
-	proxyConfig config;
-	pf_server_load_config("config.ini", &config);
-	WLog_INFO(TAG, "Configuration loaded. GFX = %i, Keyboard = %i",
-	          config.GFX, config.Keyboard);
-	return pf_server_start(&config);
+	int status = 0;
+	rdpProxyServer* server;
+	server = proxy_server_new();
+
+	if (server == NULL)
+	{
+		status = -1;
+		goto fail;
+	}
+
+	if (!pf_server_load_config("config.ini", server->config))
+	{
+		WLog_ERR(TAG, "An error occured while parsing configuration file");
+		status = -1;
+		goto fail;
+	}
+
+	status = pf_server_start(server);
+fail:
+	proxy_server_free(server);
+	return status;
 }

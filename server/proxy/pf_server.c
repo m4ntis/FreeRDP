@@ -47,6 +47,7 @@
 #include "pf_context.h"
 #include "pf_input.h"
 #include "pf_update.h"
+#include "proxy.h"
 
 #define TAG PROXY_TAG("server")
 
@@ -310,6 +311,8 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 
 	context = (clientToProxyContext*) client->context;
 	pContext = (proxyContext*)context;
+	/* inject server struct to proxyContext */
+	pContext->server = client->ContextExtra;
 	client->settings->SupportGraphicsPipeline = TRUE;
 	client->settings->SupportDynamicChannels = TRUE;
 	/* TODO: Read path from config and default to /etc */
@@ -448,6 +451,7 @@ static BOOL pf_server_client_connected(freerdp_listener* listener,
                                        freerdp_peer* client)
 {
 	HANDLE hThread;
+	client->ContextExtra = listener->info;
 
 	if (!(hThread = CreateThread(NULL, 0, pf_server_handle_client,
 	                             (void*) client, 0, NULL)))
@@ -491,19 +495,22 @@ void pf_server_mainloop(freerdp_listener* listener)
 	listener->Close(listener);
 }
 
-int pf_server_start(proxyConfig* config)
+int pf_server_start(rdpProxyServer* server)
 {
 	char* localSockPath;
 	char localSockName[MAX_PATH];
 	BOOL success;
 	WSADATA wsaData;
+	proxyConfig* config;
 	freerdp_listener* listener = freerdp_listener_new();
 
 	if (!listener)
 		return -1;
 
+	config = server->config;
 	WTSRegisterWtsApiFunctionTable(FreeRDP_InitWtsApi());
 	winpr_InitializeSSL(WINPR_SSL_INIT_DEFAULT);
+	listener->info = server;
 	listener->PeerAccepted = pf_server_client_connected;
 
 	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
