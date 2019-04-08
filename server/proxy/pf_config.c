@@ -26,6 +26,7 @@
 BOOL pf_server_load_config(char* path, proxyConfig* config)
 {
 	wIniFile* ini = IniFile_New();
+
 	if (IniFile_ReadFile(ini, path) < 0)
 	{
 		IniFile_Free(ini);
@@ -46,7 +47,6 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 	config->TlsSupport = IniFile_GetKeyValueInt(ini, "Security", "TlsSupport");
 	config->NlaSupport = IniFile_GetKeyValueInt(ini, "Security", "NlaSupport");
 	config->RdpSupport = IniFile_GetKeyValueInt(ini, "Security", "RdpSupport");
-
 	IniFile_Free(ini);
 	return TRUE;
 }
