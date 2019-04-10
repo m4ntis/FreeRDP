@@ -1,4 +1,5 @@
 #include "proxy.h"
+#include "pf_config.h"
 
 rdpProxyServer* proxy_server_new()
 {
