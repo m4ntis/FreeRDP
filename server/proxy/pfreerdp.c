@@ -42,6 +42,16 @@ int main(int argc, char* argv[])
 		goto fail;
 	}
 
+	WLog_INFO(TAG, "Loaded server, allowing channels:");
+
+	for (int i = 0; i < server->config->AllowedChannelsCount; i++)
+		printf("  - %s\n", server->config->AllowedChannels[i]);
+
+	WLog_INFO(TAG, "Loaded server, blocking channels:");
+
+	for (int i = 0; i < server->config->DeniedChannelsCount; i++)
+		printf("  - %s\n", server->config->DeniedChannels[i]);
+
 	status = pf_server_start(server);
 fail:
 	proxy_server_free(server);

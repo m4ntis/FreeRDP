@@ -23,14 +23,53 @@
 #include <winpr/crt.h>
 #include "pf_config.h"
 
+#define CHANNELS_SEPERATOR ","
+
+char** parse_channels_from_str(const char* str, UINT32* length)
+{
+	char* s = strdup(str);
+	int tokens_alloc = 1;
+	int tokens_count = 0;
+	char** tokens = calloc(tokens_alloc, sizeof(char*));
+	char* token, *rest = s;
+
+	while ((token = strsep(&rest, CHANNELS_SEPERATOR)) != NULL)
+	{
+		if (tokens_count == tokens_alloc)
+		{
+			tokens_alloc *= 2;
+			tokens = realloc(tokens, tokens_alloc * sizeof(char*));
+		}
+
+		tokens[tokens_count++] = strdup(token);
+	}
+
+	if (tokens_count == 0)
+	{
+		free(tokens);
+		tokens = NULL;
+	}
+	else
+	{
+		tokens = realloc(tokens, tokens_count * sizeof(char*));
+	}
+
+	*length = tokens_count;
+	free(s);
+	return tokens;
+}
+
 BOOL pf_server_load_config(char* path, proxyConfig* config)
 {
-	wIniFile* ini = IniFile_New();
+	const char* input;
+	BOOL result = TRUE;
+	wIniFile* ini;
+	ini = IniFile_New();
 
 	if (IniFile_ReadFile(ini, path) < 0)
 	{
-		IniFile_Free(ini);
-		return FALSE;
+		result = FALSE;
+		goto out;
 	}
 
 	/* general */
@@ -47,12 +86,48 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 	config->TlsSupport = IniFile_GetKeyValueInt(ini, "Security", "TlsSupport");
 	config->NlaSupport = IniFile_GetKeyValueInt(ini, "Security", "NlaSupport");
 	config->RdpSupport = IniFile_GetKeyValueInt(ini, "Security", "RdpSupport");
+	/* channels filtering */
+	input = IniFile_GetKeyValueString(ini, "Security", "AllowedChannels");
+
+	if (input)
+	{
+		config->AllowedChannels = parse_channels_from_str(input, &config->AllowedChannelsCount);
+
+		if (config->AllowedChannels == NULL)
+		{
+			result = FALSE;
+			goto out;
+		}
+	}
+
+	input = IniFile_GetKeyValueString(ini, "Security", "DeniedChannels");
+
+	if (input)
+	{
+		config->DeniedChannels = parse_channels_from_str(input, &config->DeniedChannelsCount);
+
+		if (config->DeniedChannels == NULL)
+		{
+			result = FALSE;
+			goto out;
+		}
+	}
+
+out:
 	IniFile_Free(ini);
-	return TRUE;
+	return result;
 }
 
 void pf_server_config_free(proxyConfig* config)
 {
+	for (int i = 0; i < config->AllowedChannelsCount; i++)
+		free(config->AllowedChannels[i]);
+
+	for (int i = 0; i < config->DeniedChannelsCount; i++)
+		free(config->DeniedChannels[i]);
+
+	free(config->AllowedChannels);
+	free(config->DeniedChannels);
 	free(config->Host);
 	free(config);
 }

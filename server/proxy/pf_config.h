@@ -42,6 +42,12 @@ struct proxy_config
 	BOOL NlaSupport;
 	BOOL TlsSupport;
 	BOOL RdpSupport;
+
+	char** AllowedChannels;
+	UINT32 AllowedChannelsCount;
+
+	char** DeniedChannels;
+	UINT32 DeniedChannelsCount;
 };
 
 typedef struct proxy_config proxyConfig;
