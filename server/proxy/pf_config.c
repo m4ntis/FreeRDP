@@ -72,10 +72,10 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 		goto out;
 	}
 
-	/* general */
-	config->Host = _strdup(IniFile_GetKeyValueString(ini, "General", "Host"));
-	config->LocalOnly = IniFile_GetKeyValueInt(ini, "General", "LocalOnly");
-	config->Port = IniFile_GetKeyValueInt(ini, "General", "Port");
+	/* Server */
+	config->Host = _strdup(IniFile_GetKeyValueString(ini, "Server", "Host"));
+	config->LocalOnly = IniFile_GetKeyValueInt(ini, "Server", "LocalOnly");
+	config->Port = IniFile_GetKeyValueInt(ini, "Server", "Port");
 	/* graphics */
 	config->GFX = IniFile_GetKeyValueInt(ini, "Graphics", "GFX");
 	config->BitmapUpdate = IniFile_GetKeyValueInt(ini, "Graphics", "BitmapUpdate");
