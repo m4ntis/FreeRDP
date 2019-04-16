@@ -87,7 +87,8 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 	config->NlaSupport = IniFile_GetKeyValueInt(ini, "Security", "NlaSupport");
 	config->RdpSupport = IniFile_GetKeyValueInt(ini, "Security", "RdpSupport");
 	/* channels filtering */
-	input = IniFile_GetKeyValueString(ini, "Security", "AllowedChannels");
+	config->Mode = IniFile_GetKeyValueInt(ini, "Channels", "Mode");
+	input = IniFile_GetKeyValueString(ini, "Channels", "AllowedChannels");
 
 	if (input)
 	{

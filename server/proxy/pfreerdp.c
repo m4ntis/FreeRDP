@@ -27,30 +27,38 @@ int main(int argc, char* argv[])
 {
 	int status = 0;
 	rdpProxyServer* server;
+	proxyConfig* config;
 	server = proxy_server_new();
 
 	if (server == NULL)
 	{
-		status = -1;
-		goto fail;
+		WLog_ERR(TAG, "Server instance allocation failed");
+		return -1;
 	}
 
-	if (!pf_server_load_config("config.ini", server->config))
+	config = server->config;
+
+	if (!pf_server_load_config("config.ini", config))
 	{
 		WLog_ERR(TAG, "An error occured while parsing configuration file");
 		status = -1;
 		goto fail;
 	}
 
-	WLog_INFO(TAG, "Loaded server, allowing channels:");
+	if (config->Mode == PROXY_CHANNELS_MODE_BLACKLIST)
+	{
+		WLog_INFO(TAG, "Channels mode: BLACKLIST");
 
-	for (int i = 0; i < server->config->AllowedChannelsCount; i++)
-		printf("  - %s\n", server->config->AllowedChannels[i]);
+		for (int i = 0; i < config->BlockedChannelsCount; i++)
+			WLog_INFO(TAG, "Blocking %s", config->BlockedChannels[i]);
+	}
+	else
+	{
+		WLog_INFO(TAG, "Channels mode: WHITELIST");
 
-	WLog_INFO(TAG, "Loaded server, blocking channels:");
-
-	for (int i = 0; i < server->config->DeniedChannelsCount; i++)
-		printf("  - %s\n", server->config->DeniedChannels[i]);
+		for (int i = 0; i < config->AllowedChannelsCount; i++)
+			WLog_INFO(TAG, "Allowing %s", config->AllowedChannels[i]);
+	}
 
 	status = pf_server_start(server);
 fail:
