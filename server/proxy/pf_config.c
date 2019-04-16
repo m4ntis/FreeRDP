@@ -101,13 +101,13 @@ BOOL pf_server_load_config(char* path, proxyConfig* config)
 		}
 	}
 
-	input = IniFile_GetKeyValueString(ini, "Security", "DeniedChannels");
+	input = IniFile_GetKeyValueString(ini, "Channels", "DeniedChannels");
 
 	if (input)
 	{
-		config->DeniedChannels = parse_channels_from_str(input, &config->DeniedChannelsCount);
+		config->BlockedChannels = parse_channels_from_str(input, &config->BlockedChannelsCount);
 
-		if (config->DeniedChannels == NULL)
+		if (config->BlockedChannels == NULL)
 		{
 			result = FALSE;
 			goto out;
@@ -124,11 +124,11 @@ void pf_server_config_free(proxyConfig* config)
 	for (int i = 0; i < config->AllowedChannelsCount; i++)
 		free(config->AllowedChannels[i]);
 
-	for (int i = 0; i < config->DeniedChannelsCount; i++)
-		free(config->DeniedChannels[i]);
+	for (int i = 0; i < config->BlockedChannelsCount; i++)
+		free(config->BlockedChannels[i]);
 
 	free(config->AllowedChannels);
-	free(config->DeniedChannels);
+	free(config->BlockedChannels);
 	free(config->Host);
 	free(config);
 }
