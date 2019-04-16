@@ -22,8 +22,6 @@
 #define FREERDP_SERVER_PROXY_PFCONFIG_H
 
 #include <winpr/ini.h>
-#define PROXY_CHANNELS_MODE_BLACKLIST 0
-#define PROXY_CHANNELS_MODE_WHITELIST 1
 
 struct proxy_config
 {
@@ -46,7 +44,7 @@ struct proxy_config
 	BOOL RdpSupport;
 
 	/* channels */
-	UINT32 Mode;
+	BOOL WhitelistMode;
 
 	char** AllowedChannels;
 	UINT32 AllowedChannelsCount;

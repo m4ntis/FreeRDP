@@ -38,8 +38,8 @@
  * limitations under the License.
  */
 
-#ifndef FREERDP_SERVER_PROXY_H
-#define FREERDP_SERVER_PROXY_H
+#ifndef FREERDP_SERVER_PROXY_PROXY_H
+#define FREERDP_SERVER_PROXY_PROXY_H
 
 #include <libfreerdp/core/listener.h>
 #include "pf_config.h"
@@ -56,4 +56,4 @@ typedef struct rdp_proxy_server rdpProxyServer;
 rdpProxyServer* proxy_server_new();
 void proxy_server_free(rdpProxyServer* server);
 
-#endif /* FREERDP_SERVER_PROXY_H */
+#endif /* FREERDP_SERVER_PROXY_PROXY_H */

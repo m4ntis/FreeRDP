@@ -45,19 +45,19 @@ int main(int argc, char* argv[])
 		goto fail;
 	}
 
-	if (config->Mode == PROXY_CHANNELS_MODE_BLACKLIST)
-	{
-		WLog_INFO(TAG, "Channels mode: BLACKLIST");
-
-		for (int i = 0; i < config->BlockedChannelsCount; i++)
-			WLog_INFO(TAG, "Blocking %s", config->BlockedChannels[i]);
-	}
-	else
+	if (config->WhitelistMode)
 	{
 		WLog_INFO(TAG, "Channels mode: WHITELIST");
 
 		for (int i = 0; i < config->AllowedChannelsCount; i++)
 			WLog_INFO(TAG, "Allowing %s", config->AllowedChannels[i]);
+	}
+	else
+	{
+		WLog_INFO(TAG, "Channels mode: BLACKLIST");
+
+		for (int i = 0; i < config->BlockedChannelsCount; i++)
+			WLog_INFO(TAG, "Blocking %s", config->BlockedChannels[i]);
 	}
 
 	status = pf_server_start(server);
