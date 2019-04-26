@@ -88,6 +88,8 @@ typedef BOOL(*pcRdpgfxPreFrameAck)(RdpgfxClientContext* context,
 
 typedef UINT(*pcRdpgfxOnOpen)(RdpgfxClientContext* context, BOOL *do_caps_advertise);
 
+typedef UINT(*pcRdpgfxOnClose)(RdpgfxClientContext* context);
+
 typedef UINT(*pcRdpgfxCapsAdvertise)(RdpgfxClientContext* context, RDPGFX_CAPS_ADVERTISE_PDU* capsAdvertise);
 
 typedef UINT(*pcRdpgfxCapsConfirm)(RdpgfxClientContext* context, RDPGFX_CAPS_CONFIRM_PDU* capsConfirm);
@@ -123,8 +125,9 @@ struct _rdpgfx_client_context
 	pcRdpgfxSetCacheSlotData SetCacheSlotData;
 	pcRdpgfxGetCacheSlotData GetCacheSlotData;
 
-	// proxy callbacks
+	/* proxy callbacks */
 	pcRdpgfxOnOpen OnOpen;
+	pcRdpgfxOnClose OnClose;
 	pcRdpgfxCapsAdvertise CapsAdvertise;
 	pcRdpgfxCapsConfirm CapsConfirm;
 

@@ -166,6 +166,15 @@ static UINT proxy_OnOpen(RdpgfxClientContext* context, BOOL *do_caps_advertise)
 	return CHANNEL_RC_INITIALIZATION_ERROR;
 }
 
+static UINT proxy_OnClose(RdpgfxClientContext* context)
+{
+	WLog_DBG(TAG, "OnClose");
+	RdpgfxServerContext* server = (RdpgfxServerContext*) context->custom;
+
+	WLog_DBG(TAG, "calling server's Close()");
+	return server->Close(server);
+}
+
 static UINT proxy_CapsConfirm(RdpgfxClientContext* context,
 	RDPGFX_CAPS_CONFIRM_PDU *capsConfirm)
 {
@@ -208,6 +217,7 @@ void proxy_graphics_pipeline_init(RdpgfxClientContext* gfx, RdpgfxServerContext*
 	gfx->MapSurfaceToWindow = proxy_MapSurfaceToWindow;
 
 	gfx->OnOpen = proxy_OnOpen;
+	gfx->OnClose = proxy_OnClose;
 	gfx->CapsConfirm = proxy_CapsConfirm;
 
 	server->custom = gfx;

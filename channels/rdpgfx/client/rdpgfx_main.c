@@ -1629,6 +1629,11 @@ static UINT rdpgfx_on_close(IWTSVirtualChannelCallback* pChannelCallback)
 		}
 	}
 
+	if (context)
+	{
+		IFCALL(context->OnClose, context);
+	}
+
 	return CHANNEL_RC_OK;
 }
 
