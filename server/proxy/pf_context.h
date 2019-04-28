@@ -63,7 +63,8 @@ struct pclient_context
 };
 typedef struct pclient_context pClientContext;
 
-struct proxy_data {
+struct proxy_data
+{
 	proxyConfig* config;
 
 	pServerContext* ps;

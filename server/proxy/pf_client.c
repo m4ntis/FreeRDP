@@ -185,7 +185,6 @@ static BOOL pf_client_post_connect(freerdp* instance)
 	update->EndPaint = pf_client_end_paint;
 	update->BitmapUpdate = pf_client_bitmap_update;
 	update->DesktopResize = pf_client_desktop_resize;
-
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	proxy_server_reactivate(ps, context);
 	return TRUE;

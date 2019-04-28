@@ -26,7 +26,6 @@ BOOL pf_server_synchronize_event(rdpInput* input, UINT32 flags)
 	pServerContext* ps = (pServerContext*)input->context;
 	pClientContext* pc = ps->pdata->pc;
 	rdpContext* context = (rdpContext*) pc;
-
 	return freerdp_input_send_synchronize_event(context->input, flags);
 }
 

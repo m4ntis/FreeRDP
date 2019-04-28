@@ -196,11 +196,9 @@ void pf_server_handle_client_disconnection(freerdp_peer* client)
 	pServerContext* ps;
 	proxyData* pdata;
 	rdpContext* pc;
-
 	ps = (pServerContext*)client->context;
 	pc = (rdpContext*) ps->pdata->pc;
 	pdata = ps->pdata;
-
 	WLog_INFO(TAG, "Client %s disconnected; closing connection with server %s",
 	          client->hostname, pc->settings->ServerHostname);
 	/* Mark connection closed for sContext */
@@ -258,7 +256,6 @@ BOOL pf_server_post_connect(freerdp_peer* client)
 	proxyData* pdata;
 	char* host = NULL;
 	DWORD port = 3389; /* default port */
-
 	ps = (pServerContext*)client->context;
 	pdata = ps->pdata;
 	config = pdata->config;
@@ -289,11 +286,10 @@ BOOL pf_server_post_connect(freerdp_peer* client)
 	pdata->pc = (pClientContext*) pc;
 	pdata->ps = ps;
 	pdata->connectionClosed = connectionClosedEvent;
-	
 	pf_server_rdpgfx_init(ps);
 
 	if (!(ps->thread = CreateThread(NULL, 0, pf_client_start, (rdpContext*) pc, 0,
-	                                      NULL)))
+	                                NULL)))
 	{
 		WLog_ERR(TAG, "CreateThread failed!");
 		return FALSE;
@@ -321,9 +317,9 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	DWORD eventCount;
 	DWORD tmp;
 	DWORD status;
-	freerdp_peer* client = (freerdp_peer*) arg;
 	pServerContext* ps;
 	proxyData* pdata;
+	freerdp_peer* client = (freerdp_peer*) arg;
 
 	if (!init_client_to_proxy_context(client))
 	{
@@ -336,7 +332,6 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	ps->pdata = pdata;
 	/* inject configuration to proxyData */
 	pdata->config = client->ContextExtra;
-
 	client->settings->SupportGraphicsPipeline = TRUE;
 	client->settings->SupportDynamicChannels = TRUE;
 	/* TODO: Read path from config and default to /etc */
