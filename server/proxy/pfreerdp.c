@@ -26,7 +26,6 @@
 int main(int argc, char* argv[])
 {
 	int status = 0;
-	rdpProxyServer* server;
 	proxyConfig* config = calloc(1, sizeof(proxyConfig));
 	status = pf_server_load_config("config.ini", config);
 
