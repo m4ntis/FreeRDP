@@ -465,6 +465,7 @@ fail:
 
 	rdpContext* pc = (rdpContext*) pdata->pc;
 	freerdp_client_stop(pc);
+	free(pdata);
 	freerdp_client_context_free(pc);
 	client->Disconnect(client);
 	freerdp_peer_context_free(client);
