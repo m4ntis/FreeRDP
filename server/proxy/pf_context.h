@@ -35,52 +35,44 @@
  * of the connection. This lets one side of the proxy to forward events to the
  * other.
  */
-struct proxy_context
+
+typedef struct proxy_data proxyData;
+
+struct pserver_context
 {
-	/* Context of client or server */
 	rdpContext _context;
 
-	rdpProxyServer* server;
-
-	/**
-	 * Context of peer to which the proxy is connected.
-	 * Events from the first context are forwarded to this one.
-	 */
-	rdpContext* peerContext;
-
-	HANDLE connectionClosed;
-};
-typedef struct proxy_context proxyContext;
-
-/**
- * Context used for the client's connection to the proxy.
- */
-struct client_to_proxy_context
-{
-	proxyContext _context;
+	proxyData* pdata;
 
 	HANDLE vcm;
 	HANDLE thread;
 
 	RdpgfxServerContext* gfx;
 };
-typedef struct client_to_proxy_context clientToProxyContext;
+typedef struct pserver_context pServerContext;
 
-BOOL init_client_to_proxy_context(freerdp_peer* client);
-
-/**
- * Context used for the proxy's connection to the target server.
- */
-struct proxy_to_server_context
+struct pclient_context
 {
-	proxyContext _context;
+	rdpContext _context;
+
+	proxyData* pdata;
 
 	RdpeiClientContext* rdpei;
 	RdpgfxClientContext* gfx;
 	EncomspClientContext* encomsp;
 };
-typedef struct proxy_to_server_context proxyToServerContext;
+typedef struct pclient_context pClientContext;
 
+struct proxy_data {
+	proxyConfig* config;
+
+	pServerContext* ps;
+	pClientContext* pc;
+
+	HANDLE connectionClosed;
+};
+
+BOOL init_client_to_proxy_context(freerdp_peer* client);
 rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings, char* host, DWORD port);
 
 #endif /* FREERDP_SERVER_PROXY_PFCONTEXT_H */

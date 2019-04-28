@@ -24,7 +24,7 @@
 
 /* Proxy context initialization callback */
 BOOL client_to_proxy_context_new(freerdp_peer* client,
-                                 clientToProxyContext* context)
+                                 pServerContext* context)
 {
 	context->vcm = WTSOpenServerA((LPSTR) client->context);
 
@@ -39,7 +39,7 @@ fail_open_server:
 
 /* Proxy context free callback */
 void client_to_proxy_context_free(freerdp_peer* client,
-                                  clientToProxyContext* context)
+                                  pServerContext* context)
 {
 	if (context)
 	{
@@ -49,7 +49,7 @@ void client_to_proxy_context_free(freerdp_peer* client,
 
 BOOL init_client_to_proxy_context(freerdp_peer* client)
 {
-	client->ContextSize = sizeof(clientToProxyContext);
+	client->ContextSize = sizeof(pServerContext);
 	client->ContextNew = (psPeerContextNew) client_to_proxy_context_new;
 	client->ContextFree = (psPeerContextFree) client_to_proxy_context_free;
 	return freerdp_peer_context_new(client);

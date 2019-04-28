@@ -1,8 +1,8 @@
 #include "pf_common.h"
 
-BOOL pf_common_connection_aborted_by_peer(proxyContext* context)
+BOOL pf_common_connection_aborted_by_peer(proxyData* pdata)
 {
-	return WaitForSingleObject(context->connectionClosed, 0) == WAIT_OBJECT_0;
+	return WaitForSingleObject(pdata->connectionClosed, 0) == WAIT_OBJECT_0;
 }
 
 void pf_common_copy_settings(rdpSettings* dst, rdpSettings* src)
