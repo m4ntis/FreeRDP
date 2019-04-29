@@ -50,14 +50,14 @@ static UINT pf_encomsp_participant_created(EncomspClientContext* context,
 	return CHANNEL_RC_OK;
 }
 
-static void pf_encomsp_init(pClientContext* tf, EncomspClientContext* encomsp)
+static void pf_encomsp_init(pClientContext* pc, EncomspClientContext* encomsp)
 {
-	tf->encomsp = encomsp;
-	encomsp->custom = (void*) tf;
+	pc->encomsp = encomsp;
+	encomsp->custom = (void*) pc;
 	encomsp->ParticipantCreated = pf_encomsp_participant_created;
 }
 
-static void pf_encomsp_uninit(pClientContext* tf, EncomspClientContext* encomsp)
+static void pf_encomsp_uninit(pClientContext* pc, EncomspClientContext* encomsp)
 {
 	if (encomsp)
 	{
@@ -65,8 +65,8 @@ static void pf_encomsp_uninit(pClientContext* tf, EncomspClientContext* encomsp)
 		encomsp->ParticipantCreated = NULL;
 	}
 
-	if (tf)
-		tf->encomsp = NULL;
+	if (pc)
+		pc->encomsp = NULL;
 }
 
 
