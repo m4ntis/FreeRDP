@@ -279,7 +279,7 @@ BOOL pf_server_post_connect(freerdp_peer* client)
 	}
 
 	/* Start a proxy's client in it's own thread */
-	pc = (pClientContext*) proxy_to_server_context_create(client->settings, host, port);
+	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
 	pc->pdata = ps->pdata;
 	/* Inject proxy's client context to proxy's context */
 	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
@@ -321,7 +321,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	proxyData* pdata;
 	freerdp_peer* client = (freerdp_peer*) arg;
 
-	if (!init_client_to_proxy_context(client))
+	if (!init_p_server_context(client))
 	{
 		freerdp_peer_free(client);
 		return 0;

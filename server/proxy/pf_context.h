@@ -38,7 +38,7 @@
 
 typedef struct proxy_data proxyData;
 
-struct pserver_context
+struct p_server_context
 {
 	rdpContext _context;
 
@@ -49,9 +49,9 @@ struct pserver_context
 
 	RdpgfxServerContext* gfx;
 };
-typedef struct pserver_context pServerContext;
+typedef struct p_server_context pServerContext;
 
-struct pclient_context
+struct p_client_context
 {
 	rdpContext _context;
 
@@ -61,7 +61,7 @@ struct pclient_context
 	RdpgfxClientContext* gfx;
 	EncomspClientContext* encomsp;
 };
-typedef struct pclient_context pClientContext;
+typedef struct p_client_context pClientContext;
 
 struct proxy_data
 {
@@ -73,7 +73,7 @@ struct proxy_data
 	HANDLE connectionClosed;
 };
 
-BOOL init_client_to_proxy_context(freerdp_peer* client);
-rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings, char* host, DWORD port);
+BOOL init_p_server_context(freerdp_peer* client);
+rdpContext* p_client_context_create(rdpSettings* clientSettings, char* host, DWORD port);
 
 #endif /* FREERDP_SERVER_PROXY_PFCONTEXT_H */

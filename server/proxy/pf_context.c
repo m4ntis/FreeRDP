@@ -47,7 +47,7 @@ void client_to_proxy_context_free(freerdp_peer* client,
 	}
 }
 
-BOOL init_client_to_proxy_context(freerdp_peer* client)
+BOOL init_p_server_context(freerdp_peer* client)
 {
 	client->ContextSize = sizeof(pServerContext);
 	client->ContextNew = (psPeerContextNew) client_to_proxy_context_new;
@@ -55,8 +55,8 @@ BOOL init_client_to_proxy_context(freerdp_peer* client)
 	return freerdp_peer_context_new(client);
 }
 
-rdpContext* proxy_to_server_context_create(rdpSettings* clientSettings,
-        char* host, DWORD port)
+rdpContext* p_client_context_create(rdpSettings* clientSettings,
+                                    char* host, DWORD port)
 {
 	RDP_CLIENT_ENTRY_POINTS clientEntryPoints;
 	rdpContext* context;
