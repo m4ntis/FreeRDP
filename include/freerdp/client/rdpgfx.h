@@ -128,12 +128,11 @@ struct _rdpgfx_client_context
 	pcRdpgfxSetCacheSlotData SetCacheSlotData;
 	pcRdpgfxGetCacheSlotData GetCacheSlotData;
 
-	/* Proxy callbacks */
+	/* proxy callbacks */
 	pcRdpgfxOnOpen OnOpen;
 	pcRdpgfxOnClose OnClose;
 	pcRdpgfxCapsAdvertise CapsAdvertise;
 	pcRdpgfxCapsConfirm CapsConfirm;
-	pcRdpgfxFrameAcknowledge FrameAcknowledge;
 
 	/* No locking required */
 	pcRdpgfxUpdateSurfaces UpdateSurfaces;
