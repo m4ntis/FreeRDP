@@ -88,7 +88,7 @@ void pf_OnChannelConnectedEventHandler(void* context,
 	{
 		RdpgfxClientContext* gfx = (RdpgfxClientContext*) e->pInterface;
 		RdpgfxServerContext* server = ps->gfx;
-		proxy_graphics_pipeline_init(gfx, server);
+		proxy_graphics_pipeline_init(gfx, server, pc->pdata);
 	}
 	else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
 	{
