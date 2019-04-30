@@ -48,19 +48,17 @@
 #define TAG CHANNELS_TAG("rdpgfx.client")
 
 static UINT rdpgfx_send_caps_advertise_pdu(RdpgfxClientContext* context,
-	RDPGFX_CAPS_ADVERTISE_PDU *pdu)
+        RDPGFX_CAPS_ADVERTISE_PDU* pdu)
 {
 	UINT error = CHANNEL_RC_OK;
 	UINT16 index;
 	RDPGFX_HEADER header;
 	RDPGFX_CAPSET* capsSet;
 	RDPGFX_PLUGIN* gfx;
-	RDPGFX_CHANNEL_CALLBACK *callback;
+	RDPGFX_CHANNEL_CALLBACK* callback;
 	wStream* s;
-
 	gfx = (RDPGFX_PLUGIN*) context->handle;
 	callback = gfx->listener_callback->channel_callback;
-
 	header.flags = 0;
 	header.cmdId = RDPGFX_CMDID_CAPSADVERTISE;
 	header.pduLength = RDPGFX_HEADER_SIZE + 2;
@@ -94,12 +92,10 @@ static UINT rdpgfx_send_caps_advertise_pdu(RdpgfxClientContext* context,
 		Stream_Write_UINT32(s, capsSet->flags); /* capsData (4 bytes) */
 		Stream_Zero(s, capsSet->length - 4);
 	}
-	
 
 	Stream_SealLength(s);
 	error = callback->channel->Write(callback->channel, (UINT32) Stream_Length(s),
 	                                 Stream_Buffer(s), NULL);
-
 fail:
 	Stream_Free(s, TRUE);
 	return error;
@@ -114,7 +110,7 @@ static UINT rdpgfx_send_supported_caps(RDPGFX_CHANNEL_CALLBACK* callback)
 {
 	UINT error = CHANNEL_RC_OK;
 	RDPGFX_PLUGIN* gfx;
-	RdpgfxClientContext *context;
+	RdpgfxClientContext* context;
 	RDPGFX_CAPSET* capsSet;
 	RDPGFX_CAPSET capsSets[RDPGFX_NUMBER_CAPSETS] = { 0 };
 	RDPGFX_CAPS_ADVERTISE_PDU pdu;
@@ -218,6 +214,7 @@ static UINT rdpgfx_send_supported_caps(RDPGFX_CHANNEL_CALLBACK* callback)
 	{
 		IFCALLRET(context->CapsAdvertise, error, context, &pdu);
 	}
+
 	return error;
 }
 
@@ -230,11 +227,9 @@ static UINT rdpgfx_recv_caps_confirm_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
         wStream* s)
 {
 	RDPGFX_CAPSET capsSet;
-	UINT32 capsDataLength;
 	RDPGFX_CAPS_CONFIRM_PDU pdu;
 	RDPGFX_PLUGIN* gfx = (RDPGFX_PLUGIN*) callback->plugin;
 	RdpgfxClientContext* context = (RdpgfxClientContext*) gfx->iface.pInterface;
-
 	pdu.capsSet = &capsSet;
 
 	if (Stream_GetRemainingLength(s) < 12)
@@ -244,11 +239,11 @@ static UINT rdpgfx_recv_caps_confirm_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
 	}
 
 	Stream_Read_UINT32(s, capsSet.version); /* version (4 bytes) */
-	Stream_Read_UINT32(s, capsDataLength); /* capsDataLength (4 bytes) */
+	Stream_Read_UINT32(s, capsSet.length); /* capsDataLength (4 bytes) */
 	Stream_Read_UINT32(s, capsSet.flags); /* capsData (4 bytes) */
 	gfx->ConnectionCaps = capsSet;
 	WLog_Print(gfx->log, WLOG_DEBUG, "RecvCapsConfirmPdu: version: 0x%08"PRIX32" flags: 0x%08"PRIX32"",
-		capsSet.version, capsSet.flags);
+	           capsSet.version, capsSet.flags);
 
 	if (context)
 	{
@@ -1550,7 +1545,6 @@ static UINT rdpgfx_on_data_received(IWTSVirtualChannelCallback*
 static UINT rdpgfx_on_open(IWTSVirtualChannelCallback* pChannelCallback)
 {
 	WLog_DBG(TAG, "OnOpen");
-
 	RDPGFX_CHANNEL_CALLBACK* callback = (RDPGFX_CHANNEL_CALLBACK*) pChannelCallback;
 	RDPGFX_PLUGIN* gfx = (RDPGFX_PLUGIN*) callback->plugin;
 	RdpgfxClientContext* context = (RdpgfxClientContext*) gfx->iface.pInterface;
@@ -1965,9 +1959,7 @@ UINT DVCPluginEntry(IDRDYNVC_ENTRY_POINTS* pEntryPoints)
 		context->GetSurfaceData = rdpgfx_get_surface_data;
 		context->SetCacheSlotData = rdpgfx_set_cache_slot_data;
 		context->GetCacheSlotData = rdpgfx_get_cache_slot_data;
-
 		context->CapsAdvertise = rdpgfx_send_caps_advertise_pdu;
-
 		gfx->iface.pInterface = (void*) context;
 		gfx->zgfx = zgfx_context_new(FALSE);
 
