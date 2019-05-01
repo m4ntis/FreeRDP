@@ -258,13 +258,14 @@ static UINT rdpgfx_recv_caps_confirm_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT rdpgfx_send_frame_acknowledge_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
+static UINT rdpgfx_send_frame_acknowledge_pdu(RdpgfxClientContext* context,
         RDPGFX_FRAME_ACKNOWLEDGE_PDU* pdu)
 {
 	UINT error;
 	wStream* s;
 	RDPGFX_HEADER header;
-	RDPGFX_PLUGIN* gfx = (RDPGFX_PLUGIN*) callback->plugin;
+	RDPGFX_PLUGIN* gfx = (RDPGFX_PLUGIN*) context->handle;
+	RDPGFX_CHANNEL_CALLBACK* callback = gfx->listener_callback->channel_callback;
 	header.flags = 0;
 	header.cmdId = RDPGFX_CMDID_FRAMEACKNOWLEDGE;
 	header.pduLength = RDPGFX_HEADER_SIZE + 12;
@@ -626,7 +627,6 @@ static UINT rdpgfx_recv_end_frame_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
 	RDPGFX_PLUGIN* gfx = (RDPGFX_PLUGIN*) callback->plugin;
 	RdpgfxClientContext* context = (RdpgfxClientContext*) gfx->iface.pInterface;
 	UINT error = CHANNEL_RC_OK;
-	BOOL sendAck = TRUE;
 
 	if (Stream_GetRemainingLength(s) < RDPGFX_END_FRAME_PDU_SIZE)
 	{
@@ -652,16 +652,15 @@ static UINT rdpgfx_recv_end_frame_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
 	gfx->TotalDecodedFrames++;
 	ack.frameId = pdu.frameId;
 	ack.totalFramesDecoded = gfx->TotalDecodedFrames;
-	IFCALLRET(context->PreFrameAck, sendAck, context, &ack);
 
-	if (sendAck)
+	if (gfx->sendFrameAcks)
 	{
 		if (gfx->suspendFrameAcks)
 		{
 			ack.queueDepth = SUSPEND_FRAME_ACKNOWLEDGEMENT;
 
 			if (gfx->TotalDecodedFrames == 1)
-				if ((error = rdpgfx_send_frame_acknowledge_pdu(callback, &ack)))
+				if ((error = rdpgfx_send_frame_acknowledge_pdu(context, &ack)))
 					WLog_Print(gfx->log, WLOG_ERROR, "rdpgfx_send_frame_acknowledge_pdu failed with error %"PRIu32"",
 					           error);
 		}
@@ -669,7 +668,7 @@ static UINT rdpgfx_recv_end_frame_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
 		{
 			ack.queueDepth = QUEUE_DEPTH_UNAVAILABLE;
 
-			if ((error = rdpgfx_send_frame_acknowledge_pdu(callback, &ack)))
+			if ((error = rdpgfx_send_frame_acknowledge_pdu(context, &ack)))
 				WLog_Print(gfx->log, WLOG_ERROR, "rdpgfx_send_frame_acknowledge_pdu failed with error %"PRIu32"",
 				           error);
 		}
@@ -694,7 +693,8 @@ static UINT rdpgfx_recv_end_frame_pdu(RDPGFX_CHANNEL_CALLBACK* callback,
 				qoe.timeDiffEDR = 1;
 
 				if ((error = rdpgfx_send_qoe_frame_acknowledge_pdu(callback, &qoe)))
-					WLog_Print(gfx->log, WLOG_ERROR, "rdpgfx_send_frame_acknowledge_pdu failed with error %"PRIu32"",
+					WLog_Print(gfx->log, WLOG_ERROR,
+					           "rdpgfx_send_qoe_frame_acknowledge_pdu failed with error %"PRIu32"",
 					           error);
 			}
 
@@ -1550,10 +1550,11 @@ static UINT rdpgfx_on_open(IWTSVirtualChannelCallback* pChannelCallback)
 	RdpgfxClientContext* context = (RdpgfxClientContext*) gfx->iface.pInterface;
 	UINT error = CHANNEL_RC_OK;
 	BOOL do_caps_advertise = TRUE;
+	gfx->sendFrameAcks = TRUE;
 
 	if (context)
 	{
-		IFCALLRET(context->OnOpen, error, context, &do_caps_advertise);
+		IFCALLRET(context->OnOpen, error, context, &do_caps_advertise, &gfx->sendFrameAcks);
 
 		if (error)
 			WLog_Print(gfx->log, WLOG_ERROR, "context->OnOpen failed with error %"PRIu32"", error);
@@ -1960,6 +1961,7 @@ UINT DVCPluginEntry(IDRDYNVC_ENTRY_POINTS* pEntryPoints)
 		context->SetCacheSlotData = rdpgfx_set_cache_slot_data;
 		context->GetCacheSlotData = rdpgfx_get_cache_slot_data;
 		context->CapsAdvertise = rdpgfx_send_caps_advertise_pdu;
+		context->FrameAcknowledge = rdpgfx_send_frame_acknowledge_pdu;
 		gfx->iface.pInterface = (void*) context;
 		gfx->zgfx = zgfx_context_new(FALSE);
 
