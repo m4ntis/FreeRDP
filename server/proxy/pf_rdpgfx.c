@@ -173,10 +173,12 @@ static UINT proxy_OnOpen(RdpgfxClientContext* context, BOOL* do_caps_advertise)
 	if (NULL != do_caps_advertise)
 		*do_caps_advertise = FALSE;
 
+	/* Wait for the proxy's server's DYNVC to be in a ready state to safely open
+	 * the GFX DYNVC. */
+	WLog_DBG(TAG, "Waiting for proxy's server dynvc to be ready");
 	WaitForSingleObject(pdata->ps->dynvcReady, INFINITE);
-	WLog_DBG(TAG, "calling server's Open()");
 
-	// we do this error check since the server's API doesn't return WTSAPI error codes
+	/* Check for error since the server's API doesn't return WTSAPI error codes */
 	if (server->Open(server))
 	{
 		return CHANNEL_RC_OK;
@@ -218,7 +220,10 @@ static UINT pf_rdpgfx_caps_advertise(RdpgfxServerContext* context,
 	{
 		const RDPGFX_CAPSET* currentCaps = &capsAdvertise->capsSets[index];
 
-		/* Add cap to supported caps list if supported by FreeRDP */
+		/* Add cap to supported caps list if supported by FreeRDP.
+		 * TODO: Have a better way of expressing max supported GFX caps version
+		 * by FreeRDP.
+		 */
 		if (currentCaps->version <= RDPGFX_CAPVERSION_103)
 		{
 			proxySupportedCapsSet = &proxySupportedCapsSets[proxySupportedCapsSetCount++];
