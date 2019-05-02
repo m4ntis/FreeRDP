@@ -1415,10 +1415,9 @@ void nego_free_nla(rdpNego* nego)
 	nego->transport->nla = NULL;
 }
 
-const char* freerdp_nego_get_routing_token(rdpContext *context, DWORD *length)
+const char* freerdp_nego_get_routing_token(rdpContext* context, DWORD* length)
 {
-	rdpNego *nego = context->rdp->nego;
-
+	rdpNego* nego = context->rdp->nego;
 	*length = nego->RoutingTokenLength;
 	return (const char*) nego->RoutingToken;
 }
