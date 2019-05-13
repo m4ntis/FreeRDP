@@ -82,37 +82,43 @@ static BOOL pf_server_parse_target_from_routing_token(freerdp_peer* client,
 	DWORD routing_token_length;
 	const char* routing_token = freerdp_nego_get_routing_token(client->context, &routing_token_length);
 
-	if (routing_token &&
-	    (routing_token_length > prefix_len) && (routing_token_length < TARGET_MAX))
+	if (routing_token == NULL)
 	{
-		len = routing_token_length - prefix_len;
-		*target = malloc(len + 1);
-
-		if (!(*target))
-			return FALSE;
-
-		CopyMemory(*target, routing_token + prefix_len, len);
-		*(*target + len) = '\0';
-		colon = strchr(*target, ':');
-		WLog_INFO(TAG, "Target [parsed from routing token]: %s", *target);
-
-		if (colon)
-		{
-			/* port is specified */
-			unsigned long p = strtoul(colon + 1, NULL, 10);
-
-			if (p > USHRT_MAX)
-				return FALSE;
-
-			*port = (DWORD)p;
-			*colon = '\0';
-		}
-
-		return TRUE;
+		/* no routing token */
+		return FALSE;
 	}
 
-	/* no routing token */
-	return FALSE;
+	if ((routing_token_length <= prefix_len) || (routing_token_length >= TARGET_MAX))
+	{
+		WLog_ERR(TAG, "pf_server_parse_target_from_routing_token: bad routing token length: %i",
+		         routing_token_length);
+		return FALSE;
+	}
+
+	len = routing_token_length - prefix_len;
+	*target = malloc(len + 1);
+
+	if (!(*target))
+		return FALSE;
+
+	CopyMemory(*target, routing_token + prefix_len, len);
+	*(*target + len) = '\0';
+	colon = strchr(*target, ':');
+	WLog_INFO(TAG, "Target [parsed from routing token]: %s", *target);
+
+	if (colon)
+	{
+		/* port is specified */
+		unsigned long p = strtoul(colon + 1, NULL, 10);
+
+		if (p > USHRT_MAX)
+			return FALSE;
+
+		*port = (DWORD)p;
+		*colon = '\0';
+	}
+
+	return TRUE;
 }
 
 /* Event callbacks */
@@ -128,7 +134,6 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	proxyConfig* config;
 	pServerContext* ps;
 	pClientContext* pc;
-	HANDLE connectionClosedEvent;
 	proxyData* pdata;
 	char* host = NULL;
 	DWORD port = 3389; /* default port */
@@ -143,8 +148,6 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 			WLog_ERR(TAG, "pf_server_parse_target_from_routing_token failed!");
 			return FALSE;
 		}
-
-		WLog_DBG(TAG, "Parsed target from load-balance-info: %s:%i", host, port);
 	}
 	else
 	{
@@ -155,12 +158,13 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	}
 
 	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
-	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	/* keep both sides of the connection in pdata */
 	pc->pdata = ps->pdata;
-	pdata->pc = (pClientContext*) pc;
+	pdata->info->TargetHostname = _strdup(host);
+	pdata->info->Username = _strdup(client->settings->Username);
+	pdata->pc = pc;
 	pdata->ps = ps;
-	pdata->connectionClosed = connectionClosedEvent;
+	pdata->connectionClosed = CreateEvent(NULL, TRUE, FALSE, NULL);
 	pf_server_rdpgfx_init(ps);
 
 	/* Start a proxy's client in it's own thread */
@@ -206,7 +210,15 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 
 	ps = (pServerContext*) client->context;
 	ps->dynvcReady = CreateEvent(NULL, TRUE, FALSE, NULL);
-	pdata = calloc(1, sizeof(proxyData));
+	pdata = pf_context_proxy_data_new();
+
+	if (pdata == NULL)
+	{
+		WLog_ERR(TAG, "pf_context_proxy_data_new failed!");
+		return 0;
+	}
+
+	pdata->info->ClientHostname = _strdup(client->hostname);
 	ps->pdata = pdata;
 	/* keep configuration in proxyData */
 	pdata->config = client->ContextExtra;
@@ -320,7 +332,7 @@ fail:
 
 	pc = (rdpContext*) pdata->pc;
 	freerdp_client_stop(pc);
-	free(pdata);
+	pf_context_proxy_data_free(pdata);
 	freerdp_client_context_free(pc);
 	client->Disconnect(client);
 	freerdp_peer_context_free(client);
