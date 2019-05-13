@@ -158,6 +158,12 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	}
 
 	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
+	if (pc == NULL)
+	{
+		WLog_ERR(TAG, "p_client_context_create failed!");
+		return FALSE;
+	}
+
 	/* keep both sides of the connection in pdata */
 	pc->pdata = ps->pdata;
 	pdata->info->TargetHostname = _strdup(host);
@@ -181,6 +187,12 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 static BOOL pf_server_activate(freerdp_peer* client)
 {
 	client->settings->CompressionLevel = PACKET_COMPR_TYPE_RDP8;
+	return TRUE;
+} 
+
+static BOOL pf_server_adjust_monitor_layout(freerdp_peer* peer)
+{
+	/* proxy as is, there's no need to do anything here */
 	return TRUE;
 }
 
@@ -244,8 +256,12 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	client->settings->ColorDepth = 32;
 	client->settings->SuppressOutput = TRUE;
 	client->settings->RefreshRect = TRUE;
+	client->settings->UseMultimon = TRUE;
+	client->settings->SupportMonitorLayoutPdu = TRUE;
+
 	client->PostConnect = pf_server_post_connect;
 	client->Activate = pf_server_activate;
+	client->AdjustMonitorsLayout = pf_server_adjust_monitor_layout;
 	pf_server_register_input_callbacks(client->input);
 	pf_server_register_update_callbacks(client->update);
 	client->settings->MultifragMaxRequestSize = 0xFFFFFF; /* FIXME */
