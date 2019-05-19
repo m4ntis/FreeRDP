@@ -1374,6 +1374,8 @@ int rdp_recv_callback(rdpTransport* transport, wStream* s, void* extra)
 				if (nla_recv_pdu(rdp->nla, s) < 1)
 				{
 					WLog_ERR(TAG, "rdp_recv_callback: CONNECTION_STATE_NLA - nla_recv_pdu() fail");
+					// rdp->settings->NlaSecurity = FALSE;
+					// rdp_client_reconnect(rdp);
 					return -1;
 				}
 			}

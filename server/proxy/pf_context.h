@@ -29,6 +29,7 @@
 #include <freerdp/server/rdpgfx.h>
 #include <freerdp/client/disp.h>
 #include <freerdp/server/disp.h>
+#include <freerdp/server/cliprdr.h>
 
 #include "pf_config.h"
 #include "pf_server.h"
@@ -51,6 +52,7 @@ struct p_server_context
 
 	RdpgfxServerContext* gfx;
 	DispServerContext* disp;
+	CliprdrServerContext *cliprdr;
 
 	BOOL dispOpened;
 };

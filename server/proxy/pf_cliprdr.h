@@ -19,21 +19,12 @@
  * limitations under the License.
  */
 
-#ifndef FREERDP_SERVER_PROXY_PFCHANNELS_H
-#define FREERDP_SERVER_PROXY_PFCHANNELS_H
-
-#include <freerdp/freerdp.h>
-#include <freerdp/client/channels.h>
+#ifndef FREERDP_SERVER_PROXY_PFCLIPRDR_H
+#define FREERDP_SERVER_PROXY_PFCLIPRDR_H
 
 #include "pf_context.h"
 
+BOOL pf_cliprdr_init(pServerContext* ps);
+void pf_cliprdr_free(pServerContext* ps);
 
-void pf_OnChannelConnectedEventHandler(void* context,
-                                       ChannelConnectedEventArgs* e);
-void pf_OnChannelDisconnectedEventHandler(void* context,
-        ChannelDisconnectedEventArgs* e);
-UINT pf_channels_init(pServerContext* ps);
-void pf_channels_free(pServerContext* ps);
-
-
-#endif /* FREERDP_SERVER_PROXY_PFCHANNELS_H */
+#endif /* FREERDP_SERVER_PROXY_PFCLIPRDR_H */

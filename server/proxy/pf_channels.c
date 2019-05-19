@@ -34,8 +34,8 @@
 
 #include "pf_channels.h"
 #include "pf_client.h"
-#include "pf_context.h"
 #include "pf_rdpgfx.h"
+#include "pf_cliprdr.h"
 #include "pf_log.h"
 #include "pf_disp.h"
 
@@ -82,6 +82,13 @@ void pf_OnChannelConnectedEventHandler(void* context,
 		ps->dispOpened = TRUE;
 		pf_disp_register_callbacks(pc->disp, ps->disp, pc->pdata);
 	}
+	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
+	{
+		WLog_INFO(TAG, "cliprdr, connect");
+		CliprdrServerContext *cliprdr_server = ;
+		CliprdrClientContext *cliprdr_server = ;
+		pf_cliprdr_channel_register(ps);
+	}
 }
 
 void pf_OnChannelDisconnectedEventHandler(void* context,
@@ -103,4 +110,35 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 	{
 		pc->disp = NULL;
 	}
+	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
+	{
+		WLog_INFO(TAG, "cliprdr, disconnect");
+	}
+}
+
+
+UINT pf_channels_init(pServerContext* ps)
+{
+	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
+	{
+		pf_rdpgfx_init(ps);	
+	}
+	
+	if (WTSVirtualChannelManagerIsChannelJoined(ps->vcm, CLIPRDR_SVC_CHANNEL_NAME))
+	{
+		pf_cliprdr_init(ps);	
+	}
+
+	return CHANNEL_RC_OK;
+}
+
+void pf_channels_free(pServerContext* ps)
+{
+
+	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
+	{
+		pf_rdpgfx_free(ps);
+	}
+
+	pf_cliprdr_free(ps);
 }

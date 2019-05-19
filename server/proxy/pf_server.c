@@ -48,8 +48,10 @@
 #include "pf_context.h"
 #include "pf_input.h"
 #include "pf_update.h"
+#include "pf_channels.h"
 #include "pf_rdpgfx.h"
 #include "pf_disp.h"
+#include "pf_cliprdr.h"
 
 #define TAG PROXY_TAG("server")
 
@@ -182,6 +184,16 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	pf_server_rdpgfx_init(ps);
 	pf_server_disp_init(ps);
 
+	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
+	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+	/* keep both sides of the connection in pdata */
+	pc->pdata = ps->pdata;
+	pdata->pc = (pClientContext*) pc;
+	pdata->ps = ps;
+	pdata->connectionClosed = connectionClosedEvent;
+	
+	pf_channels_init(ps);
+	
 	/* Start a proxy's client in it's own thread */
 	if (!(ps->thread = CreateThread(NULL, 0, pf_client_start, pc, 0, NULL)))
 	{
@@ -352,6 +364,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	}
 
 fail:
+	pf_channels_free(ps);
 
 	if (ps->disp)
 	{
