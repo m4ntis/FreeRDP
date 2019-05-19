@@ -1,8 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Input Interface API
+ * Display update notifications
  *
- * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-FREERDP_API BOOL freerdp_display_send_monitor_layout(rdpContext* input);
+FREERDP_API BOOL freerdp_display_send_monitor_layout(rdpContext* context);
 
 #ifdef __cplusplus
 }

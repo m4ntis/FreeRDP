@@ -1,8 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Activation Sequence
+ * Display update notifications
  *
- * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,7 @@
 #ifndef FREERDP_LIB_CORE_DISPLAY_H
 #define FREERDP_LIB_CORE_DISPLAY_H
 
+#include <freerdp/display.h>
 #include "rdp.h"
-
-#include <freerdp/api.h>
-#include <freerdp/settings.h>
-
-BOOL freerdp_display_send_monitor_layout(rdpContext* context);
 
 #endif /* FREERDP_LIB_CORE_DISPLAY_H */

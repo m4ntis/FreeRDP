@@ -29,6 +29,7 @@
 
 #include <freerdp/freerdp.h>
 #include <freerdp/constants.h>
+#include <freerdp/display.h>
 #include <freerdp/gdi/gdi.h>
 #include <freerdp/utils/signal.h>
 
@@ -37,10 +38,10 @@
 #include <freerdp/client/cliprdr.h>
 #include <freerdp/client/channels.h>
 #include <freerdp/channels/channels.h>
+#include <freerdp/log.h>
 
 #include <winpr/crt.h>
 #include <winpr/synch.h>
-#include <freerdp/log.h>
 
 #include "pf_channels.h"
 #include "pf_gdi.h"
@@ -90,6 +91,15 @@ static BOOL pf_client_end_paint(rdpContext* context)
 	return ps->update->EndPaint(ps);
 }
 
+static BOOL pf_client_remote_monitors(rdpContext* context, UINT32 count, const MONITOR_DEF* monitors)
+{
+	pClientContext* pc = (pClientContext*) context;
+	proxyData* pdata = pc->pdata;
+	rdpContext* ps = (rdpContext*)pdata->ps;
+
+	return freerdp_display_send_monitor_layout(ps);
+}
+
 /**
  * Called before a connection is established.
  *
@@ -126,6 +136,8 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 		WLog_ERR(TAG, "Failed to load addins");
 		return FALSE;
 	}
+
+	instance->update->RemoteMonitors = pf_client_remote_monitors;
 
 	return TRUE;
 }
