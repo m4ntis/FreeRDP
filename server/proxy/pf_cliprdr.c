@@ -14,13 +14,23 @@ BOOL pf_cliprdr_init(pServerContext* ps)
 	}
 
 	cliprdr->rdpcontext = (rdpContext*)ps;
-	return CHANNEL_RC_OK;
+
+	// enable all capabilities
+	cliprdr->useLongFormatNames = TRUE;
+	cliprdr->streamFileClipEnabled = TRUE;
+	cliprdr->fileClipNoFilePaths = TRUE;
+	cliprdr->canLockClipData = TRUE;
+
+	return cliprdr->Start(cliprdr);
 }
 
 void pf_cliprdr_free(pServerContext* ps)
 {
 	if (ps->cliprdr)
-		cliprdr_server_context_free(ps->cliprdr);
+	{
+		ps->cliprdr->Stop(ps->cliprdr);
+		// cliprdr_server_context_free(ps->cliprdr);
+	}
 }
 
 

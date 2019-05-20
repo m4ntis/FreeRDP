@@ -89,6 +89,7 @@ void pf_OnChannelConnectedEventHandler(void* context,
 		WLog_INFO(TAG, "cliprdr, connect");
 		CliprdrClientContext *cliprdr_client = e->pInterface;
 		CliprdrServerContext *cliprdr_server = ps->cliprdr;
+		pc->cliprdr = cliprdr_client;
 		pf_cliprdr_channel_register(cliprdr_client, cliprdr_server, pc->pdata);
 	}
 }
@@ -97,6 +98,8 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
         ChannelDisconnectedEventArgs* e)
 {
 	pClientContext* pc = (pClientContext*) context;
+	pServerContext* ps = pc->pdata->ps;
+
 	rdpSettings* settings;
 	settings = ((rdpContext*)pc)->settings;
 
@@ -115,20 +118,23 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
 	{
 		WLog_INFO(TAG, "cliprdr, disconnect");
+		pf_cliprdr_free(ps);
 	}
 }
 
 
 UINT pf_channels_init(pServerContext* ps)
 {
+	WLog_INFO(TAG, "pf_channels_init called");
+
 	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
 	{
-		pf_rdpgfx_init(ps);	
+		pf_rdpgfx_init(ps);
 	}
-	
+
 	if (WTSVirtualChannelManagerIsChannelJoined(ps->vcm, CLIPRDR_SVC_CHANNEL_NAME))
 	{
-		pf_cliprdr_init(ps);	
+		pf_cliprdr_init(ps);
 	}
 
 	return CHANNEL_RC_OK;

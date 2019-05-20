@@ -46,7 +46,8 @@ BOOL pf_rdpgfx_init(pServerContext* ps)
 
 void pf_rdpgfx_free(pServerContext *ps)
 {
-	rdpgfx_server_context_free(ps);
+	rdpgfx_server_context_free(ps->gfx);
+	// ps->gfx = NULL;
 }
 
 static UINT pf_rdpgfx_reset_graphics(RdpgfxClientContext* context,
