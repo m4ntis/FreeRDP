@@ -46,8 +46,7 @@ void pf_OnChannelConnectedEventHandler(void* context,
 {
 	pClientContext* pc = (pClientContext*) context;
 	pServerContext* ps = pc->pdata->ps;
-	RdpgfxClientContext* gfx;
-	RdpgfxServerContext* server;
+
 	WLog_DBG(TAG, "Channel connected: %s", e->name);
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
@@ -56,6 +55,9 @@ void pf_OnChannelConnectedEventHandler(void* context,
 	}
 	else if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) == 0)
 	{
+		RdpgfxClientContext* gfx;
+		RdpgfxServerContext* server;
+
 		gfx = (RdpgfxClientContext*) e->pInterface;
 		pc->gfx = gfx;
 		server = ps->gfx;
@@ -85,9 +87,9 @@ void pf_OnChannelConnectedEventHandler(void* context,
 	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
 	{
 		WLog_INFO(TAG, "cliprdr, connect");
-		CliprdrServerContext *cliprdr_server = ;
-		CliprdrClientContext *cliprdr_server = ;
-		pf_cliprdr_channel_register(ps);
+		CliprdrClientContext *cliprdr_client = e->pInterface;
+		CliprdrServerContext *cliprdr_server = ps->cliprdr;
+		pf_cliprdr_channel_register(cliprdr_client, cliprdr_server, pc->pdata);
 	}
 }
 

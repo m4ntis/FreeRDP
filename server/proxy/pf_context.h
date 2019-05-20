@@ -70,6 +70,7 @@ struct p_client_context
 	RdpeiClientContext* rdpei;
 	RdpgfxClientContext* gfx;
 	DispClientContext* disp;
+	CliprdrClientContext *cliprdr;
 
 	/*
 	 * In a case when freerdp_connect fails,

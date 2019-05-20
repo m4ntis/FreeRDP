@@ -22,9 +22,15 @@
 #ifndef FREERDP_SERVER_PROXY_PFCLIPRDR_H
 #define FREERDP_SERVER_PROXY_PFCLIPRDR_H
 
+#include <freerdp/client/cliprdr.h>
+#include <freerdp/server/cliprdr.h>
+
 #include "pf_context.h"
+
 
 BOOL pf_cliprdr_init(pServerContext* ps);
 void pf_cliprdr_free(pServerContext* ps);
+void pf_cliprdr_channel_register(CliprdrClientContext* cliprdr_client, CliprdrServerContext* cliprdr_server,
+	proxyData *pdata);
 
 #endif /* FREERDP_SERVER_PROXY_PFCLIPRDR_H */
