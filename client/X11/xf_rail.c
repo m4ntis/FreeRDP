@@ -861,6 +861,7 @@ static UINT xf_rail_server_start_cmd(RailClientContext* context)
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_APPBAR_REMOTING_SUPPORTED;
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_POWER_DISPLAY_REQUEST_SUPPORTED;
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_BIDIRECTIONAL_CLOAK_SUPPORTED;
+	
 	status = context->ClientInformation(context, &clientStatus);
 
 	if (status != CHANNEL_RC_OK)
@@ -900,9 +901,14 @@ static UINT xf_rail_server_start_cmd(RailClientContext* context)
 	if (status != CHANNEL_RC_OK)
 		return status;
 
-	exec.RemoteApplicationProgram = settings->RemoteApplicationProgram;
-	exec.RemoteApplicationWorkingDir = settings->ShellWorkingDirectory;
-	exec.RemoteApplicationArguments = settings->RemoteApplicationCmdLine;
+	if (!utf8_string_to_rail_string(settings->RemoteApplicationProgram,
+	                                   &exec.exeOrFile) ||
+	    !utf8_string_to_rail_string(settings->ShellWorkingDirectory,
+	                                  &exec.workingDir) ||
+	    !utf8_string_to_rail_string(settings->RemoteApplicationCmdLine,
+	                                  &exec.arguments))
+		return ERROR_INTERNAL_ERROR;
+
 	return context->ClientExecute(context, &exec);
 }
 /**

@@ -480,6 +480,7 @@ static BOOL rdp_read_info_packet(rdpRdp* rdp, wStream* s)
 	settings->AudioPlayback = ((flags & INFO_NOAUDIOPLAYBACK) ? FALSE : TRUE);
 	settings->AutoLogonEnabled = ((flags & INFO_AUTOLOGON) ? TRUE : FALSE);
 	settings->RemoteApplicationMode = ((flags & INFO_RAIL) ? TRUE : FALSE);
+	settings->HiDefRemoteApp = ((flags & INFO_HIDEF_RAIL_SUPPORTED) ? TRUE : FALSE);
 	settings->RemoteConsoleAudio = ((flags & INFO_REMOTECONSOLEAUDIO) ? TRUE : FALSE);
 	settings->CompressionEnabled = ((flags & INFO_COMPRESSION) ? TRUE : FALSE);
 	settings->LogonNotify = ((flags & INFO_LOGONNOTIFY) ? TRUE : FALSE);
@@ -487,7 +488,8 @@ static BOOL rdp_read_info_packet(rdpRdp* rdp, wStream* s)
 	settings->DisableCtrlAltDel = ((flags & INFO_DISABLECTRLALTDEL) ? TRUE : FALSE);
 	settings->ForceEncryptedCsPdu = ((flags & INFO_FORCE_ENCRYPTED_CS_PDU) ? TRUE : FALSE);
 	settings->PasswordIsSmartcardPin = ((flags & INFO_PASSWORD_IS_SC_PIN) ? TRUE : FALSE);
-
+	printf("GOT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n", settings->RemoteApplicationMode,
+		settings->HiDefRemoteApp);
 	if (flags & INFO_COMPRESSION)
 	{
 		CompressionLevel = ((flags & 0x00001E00) >> 9);
@@ -734,7 +736,11 @@ static void rdp_write_info_packet(rdpRdp* rdp, wStream* s)
 	if (settings->RemoteApplicationMode)
 	{
 		if (settings->HiDefRemoteApp)
+		{
+			printf("SENT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n", settings->RemoteApplicationMode,
+		settings->HiDefRemoteApp);
 			flags |= INFO_HIDEF_RAIL_SUPPORTED;
+		}
 
 		flags |= INFO_RAIL;
 	}

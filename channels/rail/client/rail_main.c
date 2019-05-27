@@ -107,46 +107,22 @@ UINT rail_send_channel_data(railPlugin* rail, wStream* src)
  * @return 0 on success, otherwise a Win32 error code
  */
 static UINT rail_client_execute(RailClientContext* context,
-                                const RAIL_EXEC_ORDER* exec)
+                                RAIL_EXEC_ORDER* exec)
 {
-	char* exeOrFile;
-	UINT error;
 	railPlugin* rail;
-	UINT16 flags;
-	RAIL_UNICODE_STRING ruExeOrFile = { 0 };
-	RAIL_UNICODE_STRING ruWorkingDir = { 0 };
-	RAIL_UNICODE_STRING ruArguments = { 0 };
 
 	if (!context || !exec)
 		return ERROR_INVALID_PARAMETER;
 
 	rail = (railPlugin*) context->handle;
-	exeOrFile = exec->RemoteApplicationProgram;
-	flags = exec->flags;
 
-	if (!exeOrFile)
-		return ERROR_INVALID_PARAMETER;
-
-	if (strnlen(exeOrFile, MAX_PATH) >= 2)
+	if (exec->exeOrFile.length >= 2)
 	{
-		if (strncmp(exeOrFile, "||", 2) != 0)
-			flags |= TS_RAIL_EXEC_FLAG_FILE;
+		if (strncmp((char*)exec->exeOrFile.string, "||", 2) != 0)
+			exec->flags |= TS_RAIL_EXEC_FLAG_FILE;
 	}
 
-	if (!rail_string_to_unicode_string(exec->RemoteApplicationProgram,
-	                                   &ruExeOrFile) || /* RemoteApplicationProgram */
-	    !rail_string_to_unicode_string(exec->RemoteApplicationWorkingDir,
-	                                   &ruWorkingDir) || /* ShellWorkingDirectory */
-	    !rail_string_to_unicode_string(exec->RemoteApplicationArguments,
-	                                   &ruArguments)) /* RemoteApplicationCmdLine */
-		error = ERROR_INTERNAL_ERROR;
-	else
-		error = rail_send_client_exec_order(rail, flags, &ruExeOrFile, &ruWorkingDir, &ruArguments);
-
-	free(ruExeOrFile.string);
-	free(ruWorkingDir.string);
-	free(ruArguments.string);
-	return error;
+	return rail_send_client_exec_order(rail, exec);
 }
 
 /**
@@ -225,7 +201,7 @@ static UINT rail_send_client_sysparam(RailClientContext* context,
 		return CHANNEL_RC_NO_MEMORY;
 	}
 
-	if ((error = rail_write_client_sysparam_order(rail, s, sysparam)))
+	if ((error = rail_write_sysparam_order(s, sysparam, (rail->channelFlags & TS_RAIL_ORDER_HANDSHAKE_EX_FLAGS_EXTENDED_SPI_SUPPORTED) != 0)))
 	{
 		WLog_ERR(TAG, "rail_write_client_sysparam_order failed with error %"PRIu32"!", error);
 		Stream_Free(s, TRUE);
@@ -587,7 +563,7 @@ static UINT rail_client_get_appid_request(RailClientContext* context,
 }
 
 static UINT rail_client_cloak(RailClientContext* context,
-                              const RAIL_CLOAK* cloak)
+                              const RAIL_CLOAK_ORDER* cloak)
 {
 	railPlugin* rail;
 
@@ -599,7 +575,7 @@ static UINT rail_client_cloak(RailClientContext* context,
 }
 
 static UINT rail_client_snap_arrange(RailClientContext* context,
-                                     const RAIL_SNAP_ARRANGE* snap)
+                                     const RAIL_SNAP_ARRANGE_ORDER* snap)
 {
 	railPlugin* rail;
 
@@ -926,7 +902,7 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	    CHANNEL_OPTION_ENCRYPT_RDP |
 	    CHANNEL_OPTION_COMPRESS_RDP |
 	    CHANNEL_OPTION_SHOW_PROTOCOL;
-	sprintf_s(rail->channelDef.name, ARRAYSIZE(rail->channelDef.name), "rail");
+	sprintf_s(rail->channelDef.name, ARRAYSIZE(rail->channelDef.name), RAIL_SVC_CHANNEL_NAME);
 	pEntryPointsEx = (CHANNEL_ENTRY_POINTS_FREERDP_EX*) pEntryPoints;
 
 	if ((pEntryPointsEx->cbSize >= sizeof(CHANNEL_ENTRY_POINTS_FREERDP_EX)) &&

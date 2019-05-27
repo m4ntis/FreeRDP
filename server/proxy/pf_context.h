@@ -25,6 +25,8 @@
 #include <freerdp/freerdp.h>
 #include <freerdp/channels/wtsvc.h>
 #include <freerdp/client/rdpei.h>
+#include <freerdp/client/rail.h>
+#include <freerdp/server/rail.h>
 #include <freerdp/client/rdpgfx.h>
 #include <freerdp/server/rdpgfx.h>
 #include "pf_config.h"
@@ -46,6 +48,7 @@ struct p_server_context
 	HANDLE thread;
 	HANDLE dynvcReady;
 
+	RailServerContext* rail;
 	RdpgfxServerContext* gfx;
 };
 typedef struct p_server_context pServerContext;
@@ -60,6 +63,7 @@ struct p_client_context
 	proxyData* pdata;
 
 	RdpeiClientContext* rdpei;
+	RailClientContext* rail;
 	RdpgfxClientContext* gfx;
 };
 typedef struct p_client_context pClientContext;

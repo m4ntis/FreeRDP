@@ -95,6 +95,8 @@ void pf_common_copy_settings(rdpSettings* dst, rdpSettings* src)
 	dst->RemoteAppNumIconCaches = src->RemoteAppNumIconCaches;
 	dst->RemoteAppNumIconCacheEntries = src->RemoteAppNumIconCacheEntries;
 	dst->RemoteAppLanguageBarSupported = src->RemoteAppLanguageBarSupported;
+	dst->RemoteApplicationSupportLevel = src->RemoteApplicationSupportLevel;
+	dst->RemoteApplicationSupportMask = src->RemoteApplicationSupportLevel;
 	dst->RemoteWndSupportLevel = src->RemoteWndSupportLevel;
 	/* GFX */
 	dst->GfxThinClient = src->GfxThinClient;

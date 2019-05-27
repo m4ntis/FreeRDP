@@ -705,7 +705,7 @@ static UINT rdpsnd_server_start(RdpsndServerContext* context)
 
 		goto out_close;
 	}
-
+	
 	CopyMemory(&priv->channelEvent, buffer, sizeof(HANDLE));
 	WTSFreeMemory(buffer);
 	priv->rdpsnd_pdu = Stream_New(NULL, 4096);

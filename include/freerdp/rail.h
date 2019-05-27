@@ -26,6 +26,8 @@
 
 #include <freerdp/types.h>
 
+#define RAIL_SVC_CHANNEL_NAME	"rail"
+
 /* DEPRECATED: RAIL PDU flags use the spec conformant naming with TS_ prefix */
 #define RAIL_EXEC_FLAG_EXPAND_WORKINGDIRECTORY		0x0001
 #define RAIL_EXEC_FLAG_TRANSLATE_FILES			0x0002
@@ -285,9 +287,9 @@ typedef struct _RAIL_CLIENT_STATUS_ORDER RAIL_CLIENT_STATUS_ORDER;
 struct _RAIL_EXEC_ORDER
 {
 	UINT16 flags;
-	char* RemoteApplicationProgram;
-	char* RemoteApplicationWorkingDir;
-	char* RemoteApplicationArguments;
+	RAIL_UNICODE_STRING exeOrFile;
+	RAIL_UNICODE_STRING workingDir;
+	RAIL_UNICODE_STRING arguments;
 };
 typedef struct _RAIL_EXEC_ORDER RAIL_EXEC_ORDER;
 
@@ -341,8 +343,8 @@ typedef struct _RAIL_ACTIVATE_ORDER RAIL_ACTIVATE_ORDER;
 struct _RAIL_SYSMENU_ORDER
 {
 	UINT32 windowId;
-	UINT16 left;
-	UINT16 top;
+	INT16 left;
+	INT16 top;
 };
 typedef struct _RAIL_SYSMENU_ORDER RAIL_SYSMENU_ORDER;
 
@@ -419,28 +421,28 @@ struct _RAIL_COMPARTMENT_INFO_ORDER
 	UINT32 ImeState;
 	UINT32 ImeConvMode;
 	UINT32 ImeSentenceMode;
-	UINT32 KanaMode;
+	UINT32 KANAMode;
 };
 typedef struct _RAIL_COMPARTMENT_INFO_ORDER RAIL_COMPARTMENT_INFO_ORDER;
 
-struct _RAIL_ZORDER_SYNC
+struct _RAIL_ZORDER_SYNC_ORDER
 {
 	UINT32 windowIdMarker;
 };
-typedef struct _RAIL_ZORDER_SYNC RAIL_ZORDER_SYNC;
+typedef struct _RAIL_ZORDER_SYNC_ORDER RAIL_ZORDER_SYNC_ORDER;
 
-struct _RAIL_CLOAK
+struct _RAIL_CLOAK_ORDER
 {
 	UINT32 windowId;
-	BOOL cloak;
+	BOOL cloaked;
 };
-typedef struct _RAIL_CLOAK RAIL_CLOAK;
+typedef struct _RAIL_CLOAK_ORDER RAIL_CLOAK_ORDER;
 
-struct _RAIL_POWER_DISPLAY_REQUEST
+struct _RAIL_POWER_DISPLAY_REQUEST_ORDER
 {
-	UINT32 active;
+	BOOL active;
 };
-typedef struct _RAIL_POWER_DISPLAY_REQUEST RAIL_POWER_DISPLAY_REQUEST;
+typedef struct _RAIL_POWER_DISPLAY_REQUEST_ORDER RAIL_POWER_DISPLAY_REQUEST_ORDER;
 
 struct _RAIL_TASKBAR_INFO_ORDER
 {
@@ -453,14 +455,14 @@ typedef struct _RAIL_TASKBAR_INFO_ORDER RAIL_TASKBAR_INFO_ORDER;
 struct _RAIL_LANGUAGEIME_INFO_ORDER
 {
 	UINT32 ProfileType;
-	UINT32 LanguageID;
+	UINT16 LanguageID;
 	GUID LanguageProfileCLSID;
 	GUID ProfileGUID;
 	UINT32 KeyboardLayout;
 };
 typedef struct _RAIL_LANGUAGEIME_INFO_ORDER RAIL_LANGUAGEIME_INFO_ORDER;
 
-struct _RAIL_SNAP_ARRANGE
+struct _RAIL_SNAP_ARRANGE_ORDER
 {
 	UINT32 windowId;
 	UINT16 left;
@@ -468,16 +470,16 @@ struct _RAIL_SNAP_ARRANGE
 	UINT16 right;
 	UINT16 bottom;
 };
-typedef struct _RAIL_SNAP_ARRANGE RAIL_SNAP_ARRANGE;
+typedef struct _RAIL_SNAP_ARRANGE_ORDER RAIL_SNAP_ARRANGE_ORDER;
 
-struct _RAIL_GET_APPID_RESP_EX
+struct _RAIL_GET_APPID_RESP_EX_ORDER
 {
 	UINT32 windowID;
 	WCHAR applicationID[512 / sizeof(WCHAR)];
 	UINT32 processId;
-	WCHAR processImageName[512 / sizeof(WCHAR)];
+	WCHAR processImageName[520 / sizeof(WCHAR)];
 };
-typedef struct _RAIL_GET_APPID_RESP_EX RAIL_GET_APPID_RESP_EX;
+typedef struct _RAIL_GET_APPID_RESP_EX_ORDER RAIL_GET_APPID_RESP_EX_ORDER;
 
 /* DEPRECATED: RAIL Constants
  * use the spec conformant naming scheme TS_ below
@@ -539,6 +541,8 @@ extern "C" {
 #endif
 
 FREERDP_API BOOL rail_read_unicode_string(wStream* s, RAIL_UNICODE_STRING* unicode_string);
+FREERDP_API BOOL utf8_string_to_rail_string(const char* string, RAIL_UNICODE_STRING* unicode_string);
+FREERDP_API BOOL rail_string_to_utf8_string(const RAIL_UNICODE_STRING* unicode_string, char* string);
 
 #ifdef __cplusplus
 }

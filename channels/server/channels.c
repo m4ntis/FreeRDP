@@ -49,6 +49,7 @@
 #include <freerdp/server/drdynvc.h>
 #include <freerdp/server/remdesk.h>
 #include <freerdp/server/encomsp.h>
+#include <freerdp/server/rail.h>
 #include <freerdp/server/rdpgfx.h>
 
 void freerdp_channels_dummy()
@@ -62,6 +63,7 @@ void freerdp_channels_dummy()
 	RdpeiServerContext* rdpei;
 	RemdeskServerContext* remdesk;
 	EncomspServerContext* encomsp;
+	RailServerContext* rail;
 	RdpgfxServerContext* rdpgfx;
 	audin = audin_server_context_new(NULL);
 	audin_server_context_free(audin);
@@ -81,6 +83,8 @@ void freerdp_channels_dummy()
 	remdesk_server_context_free(remdesk);
 	encomsp = encomsp_server_context_new(NULL);
 	encomsp_server_context_free(encomsp);
+	rail = rail_server_context_new(NULL);
+	rail_server_context_free(rail);
 	rdpgfx = rdpgfx_server_context_new(NULL);
 	rdpgfx_server_context_free(rdpgfx);
 }

@@ -34,6 +34,7 @@
 #include "pf_channels.h"
 #include "pf_client.h"
 #include "pf_context.h"
+#include "pf_rail.h"
 #include "pf_rdpgfx.h"
 #include "pf_log.h"
 
@@ -44,20 +45,30 @@ void pf_OnChannelConnectedEventHandler(void* context,
 {
 	pClientContext* pc = (pClientContext*) context;
 	pServerContext* ps = pc->pdata->ps;
-	RdpgfxClientContext* gfx;
-	RdpgfxServerContext* server;
+
 	WLog_DBG(TAG, "Channel connected: %s", e->name);
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{
 		pc->rdpei = (RdpeiClientContext*) e->pInterface;
 	}
+	else if (strcmp(e->name, RAIL_SVC_CHANNEL_NAME) == 0)
+	{
+		RailClientContext* client;
+		RailServerContext* server;
+		client = (RailClientContext*) e->pInterface;
+		pc->rail = client;
+		server = ps->rail;
+		pf_rail_pipeline_init(client, server, pc->pdata);
+	}
 	else if (strcmp(e->name, RDPGFX_DVC_CHANNEL_NAME) == 0)
 	{
-		gfx = (RdpgfxClientContext*) e->pInterface;
-		pc->gfx = gfx;
+		RdpgfxClientContext* client;
+		RdpgfxServerContext* server;
+		client = (RdpgfxClientContext*) e->pInterface;
+		pc->gfx = client;
 		server = ps->gfx;
-		pf_rdpgfx_pipeline_init(gfx, server, pc->pdata);
+		pf_rdpgfx_pipeline_init(client, server, pc->pdata);
 	}
 }
 

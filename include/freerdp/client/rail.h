@@ -31,11 +31,10 @@
  * Client Interface
  */
 
-#define RAIL_SVC_CHANNEL_NAME	"rail"
-
 typedef struct _rail_client_context RailClientContext;
 
-typedef UINT(*pcRailClientExecute)(RailClientContext* context, const RAIL_EXEC_ORDER* exec);
+typedef UINT(*pcRailClientExecute)(RailClientContext* context,
+								   const RAIL_EXEC_ORDER* exec);
 typedef UINT(*pcRailClientActivate)(RailClientContext* context,
                                     const RAIL_ACTIVATE_ORDER* activate);
 typedef UINT(*pcRailClientSystemParam)(RailClientContext* context,
@@ -77,23 +76,24 @@ typedef UINT(*pcRailClientGetAppIdRequest)(RailClientContext* context,
 typedef UINT(*pcRailServerGetAppIdResponse)(RailClientContext* context,
         const RAIL_GET_APPID_RESP_ORDER* getAppIdResp);
 typedef UINT(*pcRailServerZOrderSync)(RailClientContext* context,
-                                      const RAIL_ZORDER_SYNC* zorder);
+                                      const RAIL_ZORDER_SYNC_ORDER* zorder);
 typedef UINT(*pcRailServerCloak)(RailClientContext* context,
-                                 const RAIL_CLOAK* cloak);
+                                 const RAIL_CLOAK_ORDER* cloak);
 typedef UINT(*pcRailClientCloak)(RailClientContext* context,
-                                 const RAIL_CLOAK* cloak);
+                                 const RAIL_CLOAK_ORDER* cloak);
 typedef UINT(*pcRailServerPowerDisplayRequest)(RailClientContext* context,
-        const RAIL_POWER_DISPLAY_REQUEST* power);
+        const RAIL_POWER_DISPLAY_REQUEST_ORDER* power);
 typedef UINT(*pcRailClientSnapArrange)(RailClientContext* context,
-                                       const RAIL_SNAP_ARRANGE* snap);
+                                       const RAIL_SNAP_ARRANGE_ORDER* snap);
 typedef UINT(*pcRailServerGetAppidResponseExtended)(RailClientContext* context,
-        const RAIL_GET_APPID_RESP_EX* id);
+        const RAIL_GET_APPID_RESP_EX_ORDER* id);
 
 struct _rail_client_context
 {
 	void* handle;
 	void* custom;
 
+	/* TODO: Renames */
 	pcRailClientExecute ClientExecute;
 	pcRailClientActivate ClientActivate;
 	pcRailClientSystemParam ClientSystemParam;

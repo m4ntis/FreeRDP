@@ -31,6 +31,8 @@ set(${MODULE_PREFIX}_SRCS
   pf_input.h
   pf_update.c
   pf_update.h
+  pf_rail.c
+  pf_rail.h
   pf_rdpgfx.c
   pf_rdpgfx.h
   pf_server.c

@@ -2072,6 +2072,244 @@ static BOOL update_send_set_keyboard_ime_status(rdpContext* context,
 	                         rdp->mcs->userId);
 }
 
+BOOL update_send_new_or_existing_window(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+										const WINDOW_STATE_ORDER* stateOrder)
+{
+	wStream* s;
+	rdpUpdate* update = context->update;
+	BYTE controlFlags = ORDER_SECONDARY | (ORDER_TYPE_WINDOW << 2);
+	UINT16 orderSize = 11;
+	size_t orderSizePos, orderEndPos;
+	
+	// TODO: Might have to check flush
+	s = update->us;
+	if (!s)
+		return FALSE;
+
+	Stream_Write_UINT8(s, controlFlags); /* Header (1 byte) */
+	orderSizePos = Stream_GetPosition(s);
+	Stream_Seek_UINT16(s); /* OrderSize (2 bytes) */
+	Stream_Write_UINT32(s, orderInfo->fieldFlags); /* FieldsPresentFlags (4 bytes) */
+	Stream_Write_UINT32(s, orderInfo->windowId); /* WindowID (4 bytes) */
+
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_OWNER) != 0)
+	{
+		orderSize += 4;
+		Stream_Write_UINT32(s, stateOrder->ownerWindowId);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_STYLE) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->style);
+		Stream_Write_UINT32(s, stateOrder->extendedStyle);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_SHOW) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->showState);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_TITLE) != 0)
+	{
+		orderSize += 2 + stateOrder->titleInfo.length;
+		Stream_Write_UINT16(s, stateOrder->titleInfo.length);
+		Stream_Write(s, stateOrder->titleInfo.string, stateOrder->titleInfo.length);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_CLIENT_AREA_OFFSET) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->clientOffsetX);
+		Stream_Write_UINT32(s, stateOrder->clientOffsetY);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_CLIENT_AREA_SIZE) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->clientAreaWidth);
+		Stream_Write_UINT32(s, stateOrder->clientAreaHeight);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_RESIZE_MARGIN_X) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->resizeMarginLeft);
+		Stream_Write_UINT32(s, stateOrder->resizeMarginRight);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_RESIZE_MARGIN_Y) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->resizeMarginTop);
+		Stream_Write_UINT32(s, stateOrder->resizeMarginBottom);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_RP_CONTENT) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->RPContent);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_ROOT_PARENT) != 0)
+	{
+		orderSize += 4;
+		Stream_Write_UINT32(s, stateOrder->rootParentHandle);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_WND_OFFSET) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->windowOffsetX);
+		Stream_Write_UINT32(s, stateOrder->windowOffsetY);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_WND_CLIENT_DELTA) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->windowClientDeltaX);
+		Stream_Write_UINT32(s, stateOrder->windowClientDeltaY);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_WND_SIZE) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->windowWidth);
+		Stream_Write_UINT32(s, stateOrder->windowHeight);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_WND_RECTS) != 0)
+	{
+		orderSize += 2 + stateOrder->numWindowRects * sizeof(RECTANGLE_16);
+		Stream_Write_UINT16(s, stateOrder->numWindowRects);
+		Stream_Write(s, stateOrder->windowRects, stateOrder->numWindowRects * sizeof(RECTANGLE_16));
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_VIS_OFFSET) != 0)
+	{
+		orderSize += 8;
+		Stream_Write_UINT32(s, stateOrder->visibleOffsetX);
+		Stream_Write_UINT32(s, stateOrder->visibleOffsetY);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_VISIBILITY) != 0)
+	{
+		orderSize += 2 + stateOrder->numVisibilityRects * sizeof(RECTANGLE_16);
+		Stream_Write_UINT16(s, stateOrder->numVisibilityRects);
+		Stream_Write(s, stateOrder->visibilityRects, stateOrder->numVisibilityRects * sizeof(RECTANGLE_16));
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_OVERLAY_DESCRIPTION) != 0)
+	{
+		orderSize += 2 + stateOrder->OverlayDescription.length;
+		Stream_Write_UINT16(s, stateOrder->OverlayDescription.length);
+		Stream_Write(s, stateOrder->OverlayDescription.string, stateOrder->OverlayDescription.length);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_TASKBAR_BUTTON) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->TaskbarButton);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_ENFORCE_SERVER_ZORDER) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->EnforceServerZOrder);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_APPBAR_STATE) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->AppBarState);
+	}
+	
+	if ((orderInfo->fieldFlags & WINDOW_ORDER_FIELD_APPBAR_EDGE) != 0)
+	{
+		orderSize += 1;
+		Stream_Write_UINT8(s, stateOrder->AppBarEdge);
+	}
+
+	/* Write size */
+	orderEndPos = Stream_GetPosition(s);
+	Stream_SetPosition(s, orderSizePos);
+	Stream_Write_UINT16(s, orderSize);
+	Stream_SetPosition(s, orderEndPos);
+
+	update->numberOrders++;
+
+	return TRUE;
+}
+
+BOOL update_send_window_create(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							   const WINDOW_STATE_ORDER* stateOrder)
+{
+	printf("hi\n");
+	return update_send_new_or_existing_window(context, orderInfo, stateOrder);
+}
+
+BOOL update_send_window_update(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							   const WINDOW_STATE_ORDER* stateOrder)
+{
+	printf("hi\n");
+	return update_send_new_or_existing_window(context, orderInfo, stateOrder);
+}
+
+BOOL update_send_window_icon(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							 const WINDOW_ICON_ORDER* iconOrder)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_window_cached_icon(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							 const WINDOW_CACHED_ICON_ORDER* cachedIconOrder)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_window_delete(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_notify_icon_create(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							 		const NOTIFY_ICON_STATE_ORDER* iconStateOrder)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_notify_icon_update(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							 		const NOTIFY_ICON_STATE_ORDER* iconStateOrder)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_notify_icon_delete(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+							 		const WINDOW_ICON_ORDER* iconOrder)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
+                                   const MONITORED_DESKTOP_ORDER* monitoredDesktop)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
+BOOL update_send_non_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo)
+{
+	printf("hi\n");
+	return TRUE;
+}
+
 void update_register_server_callbacks(rdpUpdate* update)
 {
 	update->BeginPaint = _update_begin_paint;
@@ -2110,6 +2348,16 @@ void update_register_server_callbacks(rdpUpdate* update)
 	update->pointer->PointerColor = update_send_pointer_color;
 	update->pointer->PointerNew = update_send_pointer_new;
 	update->pointer->PointerCached = update_send_pointer_cached;
+	update->window->WindowCreate = update_send_window_create;
+	update->window->WindowUpdate = update_send_window_update;
+	update->window->WindowIcon = update_send_window_icon;
+	update->window->WindowCachedIcon = update_send_window_cached_icon;
+	update->window->WindowDelete = update_send_window_delete;
+	update->window->NotifyIconCreate = update_send_notify_icon_create;
+	update->window->NotifyIconUpdate = update_send_notify_icon_update;
+	update->window->NotifyIconDelete = update_send_notify_icon_delete;
+	update->window->MonitoredDesktop = update_send_monitored_desktop;
+	update->window->NonMonitoredDesktop = update_send_non_monitored_desktop;
 }
 
 void update_register_client_callbacks(rdpUpdate* update)

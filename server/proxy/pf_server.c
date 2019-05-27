@@ -48,6 +48,7 @@
 #include "pf_context.h"
 #include "pf_input.h"
 #include "pf_update.h"
+#include "pf_rail.h"
 #include "pf_rdpgfx.h"
 
 #define TAG PROXY_TAG("server")
@@ -181,7 +182,10 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 		return FALSE;
 	}
 
+	pf_rail_context_init(ps);
 	pf_server_rdpgfx_init(ps);
+
+	ps->rail->Start(ps->rail);
 
 	/* Start a proxy's client in it's own thread */
 	if (!(ps->thread = CreateThread(NULL, 0, pf_client_start, pc, 0, NULL)))
@@ -249,6 +253,16 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	client->settings->PrivateKeyFile = _strdup("server.key");
 	client->settings->RdpKeyFile = _strdup("server.key");
 
+	client->settings->RemoteApplicationSupportLevel = RAIL_LEVEL_SUPPORTED |
+	        RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED            |
+	        RAIL_LEVEL_SHELL_INTEGRATION_SUPPORTED         |
+	        RAIL_LEVEL_LANGUAGE_IME_SYNC_SUPPORTED         |
+	        RAIL_LEVEL_SERVER_TO_CLIENT_IME_SYNC_SUPPORTED |
+	        RAIL_LEVEL_HIDE_MINIMIZED_APPS_SUPPORTED       |
+	        RAIL_LEVEL_WINDOW_CLOAKING_SUPPORTED           |
+	        RAIL_LEVEL_HANDSHAKE_EX_SUPPORTED;
+	client->settings->RemoteAppLanguageBarSupported = TRUE;
+
 	if (!client->settings->CertificateFile || !client->settings->PrivateKeyFile ||
 	    !client->settings->RdpKeyFile)
 	{
@@ -265,6 +279,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	client->settings->RefreshRect = TRUE;
 	client->settings->UseMultimon = TRUE;
 	client->settings->SupportMonitorLayoutPdu = TRUE;
+	client->settings->AllowedTlsCiphers = _strdup("AES128-SHA");
 	client->PostConnect = pf_server_post_connect;
 	client->Activate = pf_server_activate;
 	client->AdjustMonitorsLayout = pf_server_adjust_monitor_layout;

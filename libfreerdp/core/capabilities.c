@@ -2187,6 +2187,7 @@ static BOOL rdp_read_remote_programs_capability_set(wStream* s, UINT16 length,
 
 	Stream_Read_UINT32(s, railSupportLevel); /* railSupportLevel (4 bytes) */
 
+	printf("GOT RAIL CAPS SET, railSupportLevel: %i\n", railSupportLevel);
 	if ((railSupportLevel & RAIL_LEVEL_SUPPORTED) == 0)
 	{
 		if (settings->RemoteApplicationMode == TRUE)
@@ -2203,6 +2204,7 @@ static BOOL rdp_read_remote_programs_capability_set(wStream* s, UINT16 length,
 		railSupportLevel |= RAIL_LEVEL_HANDSHAKE_EX_SUPPORTED;
 
 	settings->RemoteApplicationSupportLevel = railSupportLevel & settings->RemoteApplicationSupportMask;
+	printf("GOT RAIL CAPS SET, RemoteApplicationSupportLevel: %i\n", settings->RemoteApplicationSupportLevel);
 	return TRUE;
 }
 
@@ -2224,7 +2226,7 @@ static BOOL rdp_write_remote_programs_capability_set(wStream* s,
 
 	header = rdp_capability_set_start(s);
 	railSupportLevel = RAIL_LEVEL_SUPPORTED;
-
+	
 	if (settings->RemoteApplicationSupportLevel & RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED)
 	{
 		if (settings->RemoteAppLanguageBarSupported)
@@ -2239,6 +2241,8 @@ static BOOL rdp_write_remote_programs_capability_set(wStream* s,
 	railSupportLevel |= RAIL_LEVEL_HANDSHAKE_EX_SUPPORTED;
 	/* Mask out everything the server does not support. */
 	railSupportLevel &= settings->RemoteApplicationSupportLevel;
+	printf("SENDING RAIL CAPS SET, RemoteApplicationSupportLevel: %i\n", settings->RemoteApplicationSupportLevel);
+	printf("SENDING RAIL CAPS SET, railSupportLevel: %i\n", railSupportLevel);
 	Stream_Write_UINT32(s, railSupportLevel); /* railSupportLevel (4 bytes) */
 	rdp_capability_set_finish(s, header, CAPSET_TYPE_RAIL);
 	return TRUE;
@@ -2276,6 +2280,10 @@ static BOOL rdp_read_window_list_capability_set(wStream* s, UINT16 length,
 	Stream_Read_UINT32(s, settings->RemoteWndSupportLevel); /* wndSupportLevel (4 bytes) */
 	Stream_Read_UINT8(s, settings->RemoteAppNumIconCaches); /* numIconCaches (1 byte) */
 	Stream_Read_UINT16(s, settings->RemoteAppNumIconCacheEntries); /* numIconCacheEntries (2 bytes) */
+
+	printf("READING WINDOW LIST CAPS SET: %i, %i, %i\n", settings->RemoteWndSupportLevel,
+		settings->RemoteAppNumIconCaches, settings->RemoteAppNumIconCacheEntries);
+
 	return TRUE;
 }
 
@@ -2297,6 +2305,10 @@ static BOOL rdp_write_window_list_capability_set(wStream* s, const rdpSettings* 
 	Stream_Write_UINT32(s, settings->RemoteWndSupportLevel); /* wndSupportLevel (4 bytes) */
 	Stream_Write_UINT8(s, settings->RemoteAppNumIconCaches); /* numIconCaches (1 byte) */
 	Stream_Write_UINT16(s, settings->RemoteAppNumIconCacheEntries); /* numIconCacheEntries (2 bytes) */
+
+	printf("SENDING WINDOW LIST CAPS SET: %i, %i, %i\n", settings->RemoteWndSupportLevel,
+		settings->RemoteAppNumIconCaches, settings->RemoteAppNumIconCacheEntries);
+
 	rdp_capability_set_finish(s, header, CAPSET_TYPE_WINDOW);
 	return TRUE;
 }

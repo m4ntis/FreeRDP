@@ -50,6 +50,7 @@
 #include "pf_context.h"
 #include "pf_update.h"
 #include "pf_log.h"
+#include "pf_update.h"
 
 #define TAG PROXY_TAG("client")
 
@@ -166,7 +167,7 @@ static BOOL pf_client_post_connect(freerdp* instance)
 		offscreen_cache_register_callbacks(update);
 		palette_cache_register_callbacks(update);
 	}
-	
+
 	pf_client_register_update_callbacks(update);
 	ps = (rdpContext*) pc->pdata->ps;
 	proxy_server_reactivate(ps, context);
