@@ -98,8 +98,6 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
         ChannelDisconnectedEventArgs* e)
 {
 	pClientContext* pc = (pClientContext*) context;
-	pServerContext* ps = pc->pdata->ps;
-
 	rdpSettings* settings;
 	settings = ((rdpContext*)pc)->settings;
 
@@ -118,7 +116,6 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
 	{
 		WLog_INFO(TAG, "cliprdr, disconnect");
-		pf_cliprdr_free(ps);
 	}
 }
 

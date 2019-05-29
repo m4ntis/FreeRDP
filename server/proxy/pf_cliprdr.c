@@ -21,6 +21,7 @@ BOOL pf_cliprdr_init(pServerContext* ps)
 	cliprdr->fileClipNoFilePaths = TRUE;
 	cliprdr->canLockClipData = TRUE;
 
+	cliprdr->autoInitializationSequence = FALSE;
 	return cliprdr->Start(cliprdr);
 }
 
@@ -116,6 +117,7 @@ static UINT pf_cliprdr_ClientFileContentsResponse(CliprdrServerContext* context,
 }
 
 /* client callbacks */
+
 static UINT pf_cliprdr_ServerCapabilities(CliprdrClientContext* context, const CLIPRDR_CAPABILITIES* capabilities)
 {
 	WLog_INFO(TAG, __FUNCTION__);
