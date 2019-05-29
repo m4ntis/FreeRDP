@@ -131,7 +131,7 @@ static UINT android_cliprdr_send_client_capabilities(CliprdrClientContext*
 	capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*) &
 	                              (generalCapabilitySet);
 	generalCapabilitySet.capabilitySetType = CB_CAPSTYPE_GENERAL;
-	generalCapabilitySet.capabilitySetLength = 12;
+	generalCapabilitySet.lengthCapability = 12;
 	generalCapabilitySet.version = CB_CAPS_VERSION_2;
 	generalCapabilitySet.generalFlags = CB_USE_LONG_FORMAT_NAMES;
 	return cliprdr->ClientCapabilities(cliprdr, &capabilities);
@@ -191,7 +191,7 @@ static UINT android_cliprdr_server_capabilities(CliprdrClientContext* cliprdr,
 		capabilitySet = &(capabilities->capabilitySets[index]);
 
 		if ((capabilitySet->capabilitySetType == CB_CAPSTYPE_GENERAL) &&
-		    (capabilitySet->capabilitySetLength >= CB_CAPSTYPE_GENERAL_LEN))
+		    (capabilitySet->lengthCapability >= CB_CAPSTYPE_GENERAL_LEN))
 		{
 			CLIPRDR_GENERAL_CAPABILITY_SET* generalCapabilitySet
 			    = (CLIPRDR_GENERAL_CAPABILITY_SET*) capabilitySet;

@@ -324,7 +324,7 @@ static UINT wlf_cliprdr_send_client_capabilities(wfClipboard* clipboard)
 	capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*) &
 	                              (generalCapabilitySet);
 	generalCapabilitySet.capabilitySetType = CB_CAPSTYPE_GENERAL;
-	generalCapabilitySet.capabilitySetLength = 12;
+	generalCapabilitySet.lengthCapability = 12;
 	generalCapabilitySet.version = CB_CAPS_VERSION_2;
 	generalCapabilitySet.generalFlags = CB_USE_LONG_FORMAT_NAMES;
 
@@ -401,7 +401,7 @@ static UINT wlf_cliprdr_server_capabilities(CliprdrClientContext* context,
 			}
 		}
 
-		capsPtr += caps->capabilitySetLength;
+		capsPtr += caps->lengthCapability;
 	}
 
 	return CHANNEL_RC_OK;

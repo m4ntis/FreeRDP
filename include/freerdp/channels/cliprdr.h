@@ -116,14 +116,14 @@ typedef struct _CLIPRDR_HEADER CLIPRDR_HEADER;
 struct _CLIPRDR_CAPABILITY_SET
 {
 	UINT16 capabilitySetType;
-	UINT16 capabilitySetLength;
+	UINT16 lengthCapability;
 };
 typedef struct _CLIPRDR_CAPABILITY_SET CLIPRDR_CAPABILITY_SET;
 
 struct _CLIPRDR_GENERAL_CAPABILITY_SET
 {
 	UINT16 capabilitySetType;
-	UINT16 capabilitySetLength;
+	UINT16 lengthCapability;
 
 	UINT32 version;
 	UINT32 generalFlags;

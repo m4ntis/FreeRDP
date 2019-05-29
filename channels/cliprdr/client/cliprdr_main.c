@@ -188,7 +188,7 @@ static UINT cliprdr_process_general_capability(cliprdrPlugin* cliprdr,
 	capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*) &
 	                              (generalCapabilitySet);
 	generalCapabilitySet.capabilitySetType = CB_CAPSTYPE_GENERAL;
-	generalCapabilitySet.capabilitySetLength = 12;
+	generalCapabilitySet.lengthCapability = 12;
 	generalCapabilitySet.version = version;
 	generalCapabilitySet.generalFlags = generalFlags;
 	IFCALLRET(context->ServerCapabilities, error, context, &capabilities);
@@ -592,7 +592,7 @@ static UINT cliprdr_client_capabilities(CliprdrClientContext* context,
 	Stream_Write_UINT16(s, 0); /* pad1 */
 	generalCapabilitySet = (const CLIPRDR_GENERAL_CAPABILITY_SET*)capabilities->capabilitySets;
 	Stream_Write_UINT16(s, generalCapabilitySet->capabilitySetType); /* capabilitySetType */
-	Stream_Write_UINT16(s, generalCapabilitySet->capabilitySetLength); /* lengthCapability */
+	Stream_Write_UINT16(s, generalCapabilitySet->lengthCapability); /* lengthCapability */
 	Stream_Write_UINT32(s, generalCapabilitySet->version); /* version */
 	Stream_Write_UINT32(s, generalCapabilitySet->generalFlags); /* generalFlags */
 	WLog_Print(cliprdr->log, WLOG_DEBUG, "ClientCapabilities");

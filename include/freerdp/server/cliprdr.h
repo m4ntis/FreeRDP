@@ -74,6 +74,8 @@ struct _cliprdr_server_context
 	BOOL fileClipNoFilePaths;
 	BOOL canLockClipData;
 
+	BOOL autoInitializationSequence;
+
 	psCliprdrOpen Open;
 	psCliprdrClose Close;
 	psCliprdrStart Start;
