@@ -28,10 +28,10 @@ BOOL pf_cliprdr_init(pServerContext* ps)
 void pf_cliprdr_free(pServerContext* ps)
 {
 	if (ps->cliprdr)
-	{
 		ps->cliprdr->Stop(ps->cliprdr);
-		// cliprdr_server_context_free(ps->cliprdr);
-	}
+
+	cliprdr_server_context_free(ps->cliprdr);
+	ps->cliprdr = NULL;
 }
 
 
