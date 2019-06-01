@@ -1620,6 +1620,9 @@ out_free:
 
 void rdpgfx_server_context_free(RdpgfxServerContext* context)
 {
+	if (!context)
+		return;
+
 	rdpgfx_server_close(context);
 
 	if (context->priv)
