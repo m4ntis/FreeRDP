@@ -1181,19 +1181,16 @@ static UINT cliprdr_server_init(CliprdrServerContext* context)
 	generalCapabilitySet.version = CB_CAPS_VERSION_2;
 	generalCapabilitySet.generalFlags = generalFlags;
 
-	if (context->autoInitializationSequence)
+	if ((error = context->ServerCapabilities(context, &capabilities)))
 	{
-		if ((error = context->ServerCapabilities(context, &capabilities)))
-		{
-			WLog_ERR(TAG, "ServerCapabilities failed with error %"PRIu32"!", error);
-			return error;
-		}
+		WLog_ERR(TAG, "ServerCapabilities failed with error %"PRIu32"!", error);
+		return error;
+	}
 
-		if ((error = context->MonitorReady(context, &monitorReady)))
-		{
-			WLog_ERR(TAG, "MonitorReady failed with error %"PRIu32"!", error);
-			return error;
-		}
+	if ((error = context->MonitorReady(context, &monitorReady)))
+	{
+		WLog_ERR(TAG, "MonitorReady failed with error %"PRIu32"!", error);
+		return error;
 	}
 
 	return error;
@@ -1356,10 +1353,13 @@ static DWORD WINAPI cliprdr_server_thread(LPVOID arg)
 	events[nCount++] = cliprdr->StopEvent;
 	events[nCount++] = ChannelEvent;
 
-	if ((error = cliprdr_server_init(context)))
+	if (context->autoInitializationSequence)
 	{
-		WLog_ERR(TAG, "cliprdr_server_init failed with error %"PRIu32"!", error);
-		goto out;
+		if ((error = cliprdr_server_init(context)))
+		{
+			WLog_ERR(TAG, "cliprdr_server_init failed with error %"PRIu32"!", error);
+			goto out;
+		}
 	}
 
 	while (1)
