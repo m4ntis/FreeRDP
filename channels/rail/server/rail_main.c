@@ -475,8 +475,8 @@ static UINT rail_send_server_exec_result(RailServerContext* context,
 	if (!context || !execResult)
 		return ERROR_INVALID_PARAMETER;
 
-	s = rail_pdu_init(RAIL_EXEC_RESULT_ORDER_LENGTH);
-
+	// TODO: better handle variable length stream allocations.
+	s = rail_pdu_init(RAIL_EXEC_RESULT_ORDER_LENGTH + execResult->exeOrFile.length);
 	if (!s)
 	{
 		WLog_ERR(TAG, "rail_pdu_init failed!");
