@@ -525,27 +525,40 @@ static UINT cliprdr_server_receive_capabilities(CliprdrServerContext* context,
         wStream* s, CLIPRDR_HEADER* header)
 {
 	UINT16 index;
-	UINT error = CHANNEL_RC_OK;
+	UINT16 capabilitySetType;
+	UINT16 lengthCapability;
+	UINT error;
+	size_t cap_sets_size = 0;
 	CLIPRDR_CAPABILITIES capabilities;
 	CLIPRDR_CAPABILITY_SET* capSet;
+
+	error = CHANNEL_RC_OK;
+
+	// set `capabilitySets` to NULL so `reallocf` will know to alloc the first block
+	capabilities.capabilitySets = NULL;
+
 	WLog_DBG(TAG, "CliprdrClientCapabilities");
 	Stream_Read_UINT16(s, capabilities.cCapabilitiesSets); /* cCapabilitiesSets (2 bytes) */
 	Stream_Seek_UINT16(s); /* pad1 (2 bytes) */
 
-	/* calloc using max size of a potential capability, currently GENERAL */
-	capabilities.capabilitySets = calloc(capabilities.cCapabilitiesSets, sizeof(CLIPRDR_GENERAL_CAPABILITY_SET));
-	if (!capabilities.capabilitySets)
-	{
-		WLog_ERR(TAG, "calloc failed!");
-		return CHANNEL_RC_NO_MEMORY;
-	}
-
 	for (index = 0; index < capabilities.cCapabilitiesSets; index++)
 	{
+		Stream_Read_UINT16(s, capabilitySetType); /* capabilitySetType (2 bytes) */
+		Stream_Read_UINT16(s, lengthCapability); /* lengthCapability (2 bytes) */
+
+		cap_sets_size += lengthCapability;
+
+		capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*)reallocf(capabilities.capabilitySets, cap_sets_size);
+		if (NULL == capabilities.capabilitySets)
+		{
+			WLog_ERR(TAG, "capabilities.capabilitySets reallocf failed!");
+			return CHANNEL_RC_NO_MEMORY;
+		}
+
 		capSet = &(capabilities.capabilitySets[index]);
-		
-		Stream_Read_UINT16(s, capSet->capabilitySetType); /* capabilitySetType (2 bytes) */
-		Stream_Read_UINT16(s, capSet->lengthCapability); /* lengthCapability (2 bytes) */
+
+		capSet->capabilitySetType = capabilitySetType;
+		capSet->lengthCapability = lengthCapability;
 
 		switch (capSet->capabilitySetType)
 		{
