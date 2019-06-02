@@ -152,14 +152,14 @@ typedef struct _WINDOW_ORDER_INFO WINDOW_ORDER_INFO;
 
 struct _ICON_INFO
 {
-	UINT32 cacheEntry;
-	UINT32 cacheId;
-	UINT32 bpp;
-	UINT32 width;
-	UINT32 height;
-	UINT32 cbColorTable;
-	UINT32 cbBitsMask;
-	UINT32 cbBitsColor;
+	UINT16 cacheEntry;
+	UINT8 cacheId;
+	UINT8 bpp;
+	UINT16 width;
+	UINT16 height;
+	UINT16 cbColorTable;
+	UINT16 cbBitsMask;
+	UINT16 cbBitsColor;
 	BYTE* bitsMask;
 	BYTE* colorTable;
 	BYTE* bitsColor;
