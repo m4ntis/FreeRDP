@@ -94,10 +94,10 @@ BOOL freerdp_channel_send(rdpRdp* rdp, UINT16 channelId, const BYTE* data, int s
 			flags |= CHANNEL_FLAG_LAST;
 		}
 
-		// if ((channel->options & CHANNEL_OPTION_SHOW_PROTOCOL))
-		// {
-		// 	flags |= CHANNEL_FLAG_SHOW_PROTOCOL;
-		// }
+		if (!rdp->settings->ServerMode && (channel->options & CHANNEL_OPTION_SHOW_PROTOCOL))
+		{
+			flags |= CHANNEL_FLAG_SHOW_PROTOCOL;
+		}
 
 		Stream_Write_UINT32(s, size);
 		Stream_Write_UINT32(s, flags);
