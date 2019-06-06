@@ -2246,6 +2246,7 @@ BOOL update_send_window_create(rdpContext* context, const WINDOW_ORDER_INFO* ord
 							   const WINDOW_STATE_ORDER* stateOrder)
 {
 	printf("update_send_window_create\n");
+	printf("%i\n", orderInfo->windowId);
 	return update_send_new_or_existing_window(context, orderInfo, stateOrder);
 }
 
@@ -2253,6 +2254,7 @@ BOOL update_send_window_update(rdpContext* context, const WINDOW_ORDER_INFO* ord
 							   const WINDOW_STATE_ORDER* stateOrder)
 {
 	printf("update_send_window_update\n");
+	printf("%i\n", orderInfo->windowId);
 	return update_send_new_or_existing_window(context, orderInfo, stateOrder);
 }
 
@@ -2260,11 +2262,11 @@ BOOL update_send_window_icon(rdpContext* context, const WINDOW_ORDER_INFO* order
 							 const WINDOW_ICON_ORDER* iconOrder)
 {
 	printf("update_send_window_icon\n");
-	
+	printf("%i\n", orderInfo->windowId);
 	wStream* s;
 	rdpUpdate* update = context->update;
 	BYTE controlFlags = ORDER_SECONDARY | (ORDER_TYPE_WINDOW << 2);
-	UINT16 orderSize = 11;
+	UINT16 orderSize = 23;
 	size_t orderSizePos, orderEndPos;
 	ICON_INFO* iconInfo = iconOrder->iconInfo;
 
@@ -2288,10 +2290,24 @@ BOOL update_send_window_icon(rdpContext* context, const WINDOW_ORDER_INFO* order
 	Stream_Write_UINT16(s, iconInfo->height); /* Height (2 bytes) */
 	if (iconInfo->bpp <= 8)
 		Stream_Write_UINT16(s, iconInfo->cbColorTable); /* CbColorTable (2 bytes) */
+		orderSize += 2;
 	Stream_Write_UINT16(s, iconInfo->cbBitsMask); /* CbBitsMask (2 bytes) */
 	Stream_Write_UINT16(s, iconInfo->cbBitsColor); /* CbBitsColor (2 bytes) */
 	Stream_Write(s, iconInfo->bitsMask, iconInfo->cbBitsMask); /* BitsMask (variable) */
+	orderSize += iconInfo->cbBitsMask;
 	if (iconInfo->bpp <= 8)
+		Stream_Write(s, iconInfo->colorTable, iconInfo->cbColorTable); /* ColorTable (variable) */
+		orderSize += iconInfo->cbColorTable;
+	Stream_Write(s, iconInfo->bitsColor, iconInfo->cbBitsColor); /* BitsColor (variable) */
+	orderSize += iconInfo->cbBitsColor;
+
+	/* Write size */
+	orderEndPos = Stream_GetPosition(s);
+	Stream_SetPosition(s, orderSizePos);
+	Stream_Write_UINT16(s, orderSize);
+	Stream_SetPosition(s, orderEndPos);
+
+	update->numberOrders++;
 
 	return TRUE;
 }
@@ -2300,12 +2316,14 @@ BOOL update_send_window_cached_icon(rdpContext* context, const WINDOW_ORDER_INFO
 							 const WINDOW_CACHED_ICON_ORDER* cachedIconOrder)
 {
 	printf("update_send_window_cached_icon\n");
+	printf("%i\n", orderInfo->windowId);
 	return TRUE;
 }
 
 BOOL update_send_window_delete(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo)
 {
 	printf("update_send_window_delete\n");
+	printf("%i\n", orderInfo->windowId);
 	return TRUE;
 }
 
@@ -2313,6 +2331,7 @@ BOOL update_send_notify_icon_create(rdpContext* context, const WINDOW_ORDER_INFO
 							 		const NOTIFY_ICON_STATE_ORDER* iconStateOrder)
 {
 	printf("update_send_notify_icon_create\n");
+	printf("%i\n", orderInfo->windowId);
 	return TRUE;
 }
 
@@ -2320,6 +2339,7 @@ BOOL update_send_notify_icon_update(rdpContext* context, const WINDOW_ORDER_INFO
 							 		const NOTIFY_ICON_STATE_ORDER* iconStateOrder)
 {
 	printf("update_send_notify_icon_update\n");
+	printf("%i\n", orderInfo->windowId);
 	return TRUE;
 }
 
@@ -2327,6 +2347,7 @@ BOOL update_send_notify_icon_delete(rdpContext* context, const WINDOW_ORDER_INFO
 							 		const WINDOW_ICON_ORDER* iconOrder)
 {
 	printf("update_send_notify_icon_delete\n");
+	printf("%i\n", orderInfo->windowId);
 	return TRUE;
 }
 
@@ -2334,9 +2355,9 @@ BOOL update_send_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO*
                                    const MONITORED_DESKTOP_ORDER* monitoredDesktop)
 {
 	printf("update_send_monitored_desktop\n");
+	printf("%i\n", orderInfo->windowId);
 
 	int i;
-	int size;
 	wStream* s;
 	rdpUpdate* update = context->update;
 	BYTE controlFlags = ORDER_SECONDARY | (ORDER_TYPE_WINDOW << 2);
@@ -2386,6 +2407,7 @@ BOOL update_send_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO*
 BOOL update_send_non_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo)
 {
 	printf("update_send_non_monitored_desktop\n");
+	printf("%i\n", orderInfo->windowId);
 
 	wStream* s;
 	rdpUpdate* update = context->update;

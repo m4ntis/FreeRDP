@@ -175,6 +175,7 @@ static UINT pf_rdpgfx_map_surface_to_window(RdpgfxClientContext* context,
 {
 	proxyData* pdata = (proxyData*) context->custom;
 	RdpgfxServerContext* server = (RdpgfxServerContext*) pdata->ps->gfx;
+	printf("SurfaceToWindow: %ld\n", surfaceToWindow->windowId);
 	WLog_DBG(TAG, __FUNCTION__);
 	return server->MapSurfaceToWindow(server, surfaceToWindow);
 }
@@ -184,6 +185,7 @@ static UINT pf_rdpgfx_map_surface_to_scaled_window(RdpgfxClientContext* context,
 {
 	proxyData* pdata = (proxyData*) context->custom;
 	RdpgfxServerContext* server = (RdpgfxServerContext*) pdata->ps->gfx;
+	printf("SurfaceToScaledWindow: %ld\n", surfaceToScaledWindow->windowId);
 	WLog_DBG(TAG, __FUNCTION__);
 	return server->MapSurfaceToScaledWindow(server, surfaceToScaledWindow);
 }
