@@ -190,8 +190,6 @@ static UINT rail_write_client_status_order(wStream* s, const RAIL_CLIENT_STATUS_
  */
 static UINT rail_write_client_exec_order(wStream* s, const RAIL_EXEC_ORDER* exec)
 {
-	UINT error;
-
 	if (!s || !exec)
 		return ERROR_INVALID_PARAMETER;
 
@@ -214,25 +212,11 @@ static UINT rail_write_client_exec_order(wStream* s, const RAIL_EXEC_ORDER* exec
 	Stream_Write_UINT16(s, exec->workingDir.length); /* workingDirLength (2 bytes) */
 	Stream_Write_UINT16(s, exec->arguments.length); /* argumentsLength (2 bytes) */
 
-	if ((error = rail_write_unicode_string_value(s, &exec->exeOrFile)))
-	{
-		WLog_ERR(TAG, "rail_write_unicode_string_value failed with error %"PRIu32"", error);
-		return error;
-	}
+	Stream_Write(s, exec->exeOrFile.string, exec->exeOrFile.length); /* ExeOrFile (variable) */
+	Stream_Write(s, exec->workingDir.string, exec->workingDir.length); /* WorkingDir (variable) */
+	Stream_Write(s, exec->arguments.string, exec->arguments.length); /* Arguments (variable) */
 
-	if ((error = rail_write_unicode_string_value(s, &exec->workingDir)))
-	{
-		WLog_ERR(TAG, "rail_write_unicode_string_value failed with error %"PRIu32"", error);
-		return error;
-	}
-
-	if ((error = rail_write_unicode_string_value(s, &exec->arguments)))
-	{
-		WLog_ERR(TAG, "rail_write_unicode_string_value failed with error %"PRIu32"", error);
-		return error;
-	}
-
-	return error;
+	return ERROR_SUCCESS;
 }
 
 static UINT rail_write_client_activate_order(wStream* s, const RAIL_ACTIVATE_ORDER* activate)
