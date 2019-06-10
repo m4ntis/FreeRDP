@@ -183,16 +183,16 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 
 	pf_server_rdpgfx_init(ps);
 	pf_server_disp_init(ps);
+	pf_channels_init(ps);
 
 	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
+
 	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
 	/* keep both sides of the connection in pdata */
 	pc->pdata = ps->pdata;
 	pdata->pc = (pClientContext*) pc;
 	pdata->ps = ps;
 	pdata->connectionClosed = connectionClosedEvent;
-	
-	pf_channels_init(ps);
 	
 	/* Start a proxy's client in it's own thread */
 	if (!(ps->thread = CreateThread(NULL, 0, pf_client_start, pc, 0, NULL)))
@@ -259,6 +259,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	config = pdata->config;
 	client->settings->UseMultimon = TRUE;
 	client->settings->SupportGraphicsPipeline = config->GFX;
+	client->settings->RedirectClipboard = FALSE; /* disable on init, check later on `pf_channels_init` */
 	client->settings->SupportDynamicChannels = TRUE;
 	client->settings->CertificateFile = _strdup("server.crt");
 	client->settings->PrivateKeyFile = _strdup("server.key");

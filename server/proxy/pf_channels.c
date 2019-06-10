@@ -86,7 +86,7 @@ void pf_OnChannelConnectedEventHandler(void* context,
 	}
 	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
 	{
-		WLog_INFO(TAG, "cliprdr, connect");
+		WLog_DBG(TAG, "cliprdr, connected");
 		CliprdrClientContext *cliprdr_client = e->pInterface;
 		CliprdrServerContext *cliprdr_server = ps->cliprdr;
 		pc->cliprdr = cliprdr_client;
@@ -98,8 +98,6 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
         ChannelDisconnectedEventArgs* e)
 {
 	pClientContext* pc = (pClientContext*) context;
-	rdpSettings* settings;
-	settings = ((rdpContext*)pc)->settings;
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)
 	{
@@ -115,7 +113,7 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 	}
 	else if (strcmp(e->name, CLIPRDR_SVC_CHANNEL_NAME) == 0)
 	{
-		WLog_INFO(TAG, "cliprdr, disconnect");
+		WLog_DBG(TAG, "cliprdr, disconnect");
 	}
 }
 
@@ -123,6 +121,9 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 UINT pf_channels_init(pServerContext* ps)
 {
 	WLog_INFO(TAG, "pf_channels_init called");
+	rdpSettings* sSettings;
+
+	sSettings = ((rdpContext*)ps)->settings;
 
 	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
 	{
@@ -131,6 +132,8 @@ UINT pf_channels_init(pServerContext* ps)
 
 	if (WTSVirtualChannelManagerIsChannelJoined(ps->vcm, CLIPRDR_SVC_CHANNEL_NAME))
 	{
+		/* enable server to redirect clipboard */
+		sSettings->RedirectClipboard = TRUE;
 		pf_cliprdr_init(ps);
 	}
 
