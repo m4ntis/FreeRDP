@@ -10,6 +10,7 @@ BOOL pf_cliprdr_init(pServerContext* ps)
 
 	if (!cliprdr)
 	{
+		WLog_ERR(TAG, "cliprdr_server_context_new failed.");
 		return FALSE;
 	}
 
@@ -208,6 +209,9 @@ static UINT pf_cliprdr_ServerFileContentsResponse(CliprdrClientContext* context,
 void pf_cliprdr_channel_register(CliprdrClientContext* cliprdr_client, CliprdrServerContext* cliprdr_server,
 	proxyData* pdata)
 {
+	if (cliprdr_server == NULL || cliprdr_client == NULL)
+		return;
+
 	/* Set server and client side references to proxy data */
 	cliprdr_server->custom = (void*) pdata;
 	cliprdr_client->custom = (void*) pdata;
