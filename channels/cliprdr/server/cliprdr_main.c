@@ -531,10 +531,11 @@ static UINT cliprdr_server_receive_capabilities(CliprdrServerContext* context,
 	size_t cap_sets_size = 0;
 	CLIPRDR_CAPABILITIES capabilities;
 	CLIPRDR_CAPABILITY_SET* capSet;
+	void *buff;
 
 	error = CHANNEL_RC_OK;
 
-	// set `capabilitySets` to NULL so `reallocf` will know to alloc the first block
+	// set `capabilitySets` to NULL so `realloc` will know to alloc the first block
 	capabilities.capabilitySets = NULL;
 
 	WLog_DBG(TAG, "CliprdrClientCapabilities");
@@ -548,12 +549,14 @@ static UINT cliprdr_server_receive_capabilities(CliprdrServerContext* context,
 
 		cap_sets_size += lengthCapability;
 
-		capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*)reallocf(capabilities.capabilitySets, cap_sets_size);
-		if (NULL == capabilities.capabilitySets)
+		buff = realloc(capabilities.capabilitySets, cap_sets_size);
+		if (NULL == buff)
 		{
-			WLog_ERR(TAG, "capabilities.capabilitySets reallocf failed!");
+			WLog_ERR(TAG, "capabilities.capabilitySets realloc failed!");
+			free(capabilities.capabilitySets);
 			return CHANNEL_RC_NO_MEMORY;
 		}
+		capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*)buff;
 
 		capSet = &(capabilities.capabilitySets[index]);
 
