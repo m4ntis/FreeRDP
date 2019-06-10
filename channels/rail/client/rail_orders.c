@@ -73,7 +73,8 @@ static UINT rail_read_server_exec_result_order(wStream* s, RAIL_EXEC_RESULT_ORDE
 	Stream_Read_UINT16(s, execResult->execResult); /* execResult (2 bytes) */
 	Stream_Read_UINT32(s, execResult->rawResult); /* rawResult (4 bytes) */
 	Stream_Seek_UINT16(s); /* padding (2 bytes) */
-	return rail_read_unicode_string(s, &execResult->exeOrFile) ? CHANNEL_RC_OK : ERROR_INTERNAL_ERROR; /* exeOrFile */
+	return rail_read_unicode_string(s,
+	                                &execResult->exeOrFile) ? CHANNEL_RC_OK : ERROR_INTERNAL_ERROR; /* exeOrFile */
 }
 
 /**
@@ -150,7 +151,8 @@ static UINT rail_read_server_get_appid_resp_order(wStream* s,
 	}
 
 	Stream_Read_UINT32(s, getAppidResp->windowId); /* windowId (4 bytes) */
-	Stream_Read(s, (BYTE*) & (getAppidResp->applicationId), 512); /* applicationId (256 UNICODE chars) */
+	Stream_Read(s, (BYTE*) & (getAppidResp->applicationId),
+	            512); /* applicationId (256 UNICODE chars) */
 	return CHANNEL_RC_OK;
 }
 
@@ -211,11 +213,9 @@ static UINT rail_write_client_exec_order(wStream* s, const RAIL_EXEC_ORDER* exec
 	Stream_Write_UINT16(s, exec->exeOrFile.length); /* exeOrFileLength (2 bytes) */
 	Stream_Write_UINT16(s, exec->workingDir.length); /* workingDirLength (2 bytes) */
 	Stream_Write_UINT16(s, exec->arguments.length); /* argumentsLength (2 bytes) */
-
 	Stream_Write(s, exec->exeOrFile.string, exec->exeOrFile.length); /* ExeOrFile (variable) */
 	Stream_Write(s, exec->workingDir.string, exec->workingDir.length); /* WorkingDir (variable) */
 	Stream_Write(s, exec->arguments.string, exec->arguments.length); /* Arguments (variable) */
-
 	return ERROR_SUCCESS;
 }
 
@@ -379,7 +379,7 @@ static UINT rail_recv_handshake_ex_order(railPlugin* rail, wStream* s)
 {
 	RailClientContext* context = rail_get_client_interface(rail);
 	RAIL_HANDSHAKE_EX_ORDER serverHandshake = { 0 };
-	// RAIL_HANDSHAKE_ORDER clientHandshake = { 0 };
+	RAIL_HANDSHAKE_ORDER clientHandshake = { 0 };
 	UINT error;
 
 	if (!rail || !context || !s)
@@ -396,10 +396,10 @@ static UINT rail_recv_handshake_ex_order(railPlugin* rail, wStream* s)
 
 	rail->channelBuildNumber = serverHandshake.buildNumber;
 	rail->channelFlags = serverHandshake.railHandshakeFlags;
-	// clientHandshake.buildNumber = 0x00001DB0;
+	clientHandshake.buildNumber = 0x00001DB0;
 	/* 2.2.2.2.3 HandshakeEx PDU (TS_RAIL_ORDER_HANDSHAKE_EX)
 	 * Client response is really a Handshake PDU */
-	// error = context->ClientHandshake(context, &clientHandshake);
+	//error = context->ClientHandshake(context, &clientHandshake);
 
 	// if (error != CHANNEL_RC_OK)
 	// 	return error;
@@ -709,9 +709,7 @@ static UINT rail_read_order_cloak(wStream* s, RAIL_CLOAK_ORDER* cloak)
 
 	Stream_Read_UINT32(s, cloak->windowId); /* WindowId (4 bytes) */
 	Stream_Read_UINT8(s, cloaked); /* Cloaked (1 byte) */
-
 	cloak->cloaked = (cloaked != 0) ? TRUE : FALSE;
-
 	return CHANNEL_RC_OK;
 }
 
@@ -746,7 +744,8 @@ static UINT rail_recv_order_cloak(railPlugin* rail, wStream* s)
 	return error;
 }
 
-static UINT rail_read_power_display_request_order(wStream* s, RAIL_POWER_DISPLAY_REQUEST_ORDER* power)
+static UINT rail_read_power_display_request_order(wStream* s,
+        RAIL_POWER_DISPLAY_REQUEST_ORDER* power)
 {
 	if (!s || !power)
 		return ERROR_INVALID_PARAMETER;
@@ -1115,7 +1114,8 @@ static UINT rail_send_client_sysparam_order(railPlugin* rail, const RAIL_SYSPARA
 		return CHANNEL_RC_NO_MEMORY;
 	}
 
-	if ((error = rail_write_sysparam_order(s, sysparam, (rail->channelFlags & TS_RAIL_ORDER_HANDSHAKE_EX_FLAGS_EXTENDED_SPI_SUPPORTED) != 0)))
+	if ((error = rail_write_sysparam_order(s, sysparam,
+	                                       (rail->channelFlags & TS_RAIL_ORDER_HANDSHAKE_EX_FLAGS_EXTENDED_SPI_SUPPORTED) != 0)))
 	{
 		WLog_ERR(TAG, "rail_write_sysparam_order failed with error %"PRIu32"!", error);
 		goto out;
@@ -1536,7 +1536,8 @@ UINT rail_send_client_order_cloak_order(railPlugin* rail, const RAIL_CLOAK_ORDER
 	return error;
 }
 
-UINT rail_send_client_order_snap_arrange_order(railPlugin* rail, const RAIL_SNAP_ARRANGE_ORDER* snap)
+UINT rail_send_client_order_snap_arrange_order(railPlugin* rail,
+        const RAIL_SNAP_ARRANGE_ORDER* snap)
 {
 	wStream* s;
 	UINT error;

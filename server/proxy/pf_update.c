@@ -32,7 +32,6 @@ static BOOL pf_server_refresh_rect(rdpContext* context, BYTE count,
                                    const RECTANGLE_16* areas)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pServerContext* ps = (pServerContext*)context;
 	rdpContext* pc = (rdpContext*) ps->pdata->pc;
 	return pc->update->RefreshRect(pc, count, areas);
@@ -42,7 +41,6 @@ static BOOL pf_server_suppress_output(rdpContext* context, BYTE allow,
                                       const RECTANGLE_16* area)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pServerContext* ps = (pServerContext*)context;
 	rdpContext* pc = (rdpContext*) ps->pdata->pc;
 	return pc->update->SuppressOutput(pc, allow, area);
@@ -56,6 +54,7 @@ static BOOL pf_server_suppress_output(rdpContext* context, BYTE allow,
  */
 static BOOL pf_client_begin_paint(rdpContext* context)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -69,6 +68,7 @@ static BOOL pf_client_begin_paint(rdpContext* context)
  */
 static BOOL pf_client_end_paint(rdpContext* context)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -77,6 +77,7 @@ static BOOL pf_client_end_paint(rdpContext* context)
 
 static BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bitmap)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -85,6 +86,7 @@ static BOOL pf_client_bitmap_update(rdpContext* context, const BITMAP_UPDATE* bi
 
 static BOOL pf_client_desktop_resize(rdpContext* context)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -94,6 +96,7 @@ static BOOL pf_client_desktop_resize(rdpContext* context)
 static BOOL pf_client_remote_monitors(rdpContext* context, UINT32 count,
                                       const MONITOR_DEF* monitors)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -101,8 +104,9 @@ static BOOL pf_client_remote_monitors(rdpContext* context, UINT32 count,
 }
 
 static BOOL pf_client_send_pointer_system(rdpContext* context,
-                                       const POINTER_SYSTEM_UPDATE* pointer_system)
+        const POINTER_SYSTEM_UPDATE* pointer_system)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -112,6 +116,7 @@ static BOOL pf_client_send_pointer_system(rdpContext* context,
 static BOOL pf_client_send_pointer_position(rdpContext* context,
         const POINTER_POSITION_UPDATE* pointerPosition)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -119,8 +124,9 @@ static BOOL pf_client_send_pointer_position(rdpContext* context,
 }
 
 static BOOL pf_client_send_pointer_color(rdpContext* context,
-                                      const POINTER_COLOR_UPDATE* pointer_color)
+        const POINTER_COLOR_UPDATE* pointer_color)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -128,8 +134,9 @@ static BOOL pf_client_send_pointer_color(rdpContext* context,
 }
 
 static BOOL pf_client_send_pointer_new(rdpContext* context,
-                                    const POINTER_NEW_UPDATE* pointer_new)
+                                       const POINTER_NEW_UPDATE* pointer_new)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -137,8 +144,9 @@ static BOOL pf_client_send_pointer_new(rdpContext* context,
 }
 
 static BOOL pf_client_send_pointer_cached(rdpContext* context,
-                                       const POINTER_CACHED_UPDATE* pointer_cached)
+        const POINTER_CACHED_UPDATE* pointer_cached)
 {
+	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*) context;
 	proxyData* pdata = pc->pdata;
 	rdpContext* ps = (rdpContext*)pdata->ps;
@@ -146,11 +154,9 @@ static BOOL pf_client_send_pointer_cached(rdpContext* context,
 }
 
 static BOOL pf_client_save_session_info(rdpContext* context, UINT32 type,
-										void* data)
+                                        void* data)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
-	printf("******************************************** got save session info from target!\n");
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->SaveSessionInfo(ps, type, data);
@@ -159,47 +165,42 @@ static BOOL pf_client_save_session_info(rdpContext* context, UINT32 type,
 static BOOL pf_client_server_status_info(rdpContext* context, UINT32 status)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->ServerStatusInfo(ps, status);
 }
 
 static BOOL pf_client_window_create(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              		const WINDOW_STATE_ORDER* windowState)
+                                    const WINDOW_STATE_ORDER* windowState)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->WindowCreate(ps, orderInfo, windowState);
 }
 
 static BOOL pf_client_window_update(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              	 	const WINDOW_STATE_ORDER* windowState)
+                                    const WINDOW_STATE_ORDER* windowState)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->WindowUpdate(ps, orderInfo, windowState);
 }
 
 static BOOL pf_client_window_icon(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              	  const WINDOW_ICON_ORDER* windowIcon)
+                                  const WINDOW_ICON_ORDER* windowIcon)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->WindowIcon(ps, orderInfo, windowIcon);
 }
 
 static BOOL pf_client_window_cached_icon(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              	  const WINDOW_CACHED_ICON_ORDER* windowCachedIcon)
+        const WINDOW_CACHED_ICON_ORDER* windowCachedIcon)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->WindowCachedIcon(ps, orderInfo, windowCachedIcon);
@@ -208,27 +209,24 @@ static BOOL pf_client_window_cached_icon(rdpContext* context, const WINDOW_ORDER
 static BOOL pf_client_window_delete(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->WindowDelete(ps, orderInfo);
 }
 
 static BOOL pf_client_notify_icon_create(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              	  const NOTIFY_ICON_STATE_ORDER* notifyIconState)
+        const NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->NotifyIconCreate(ps, orderInfo, notifyIconState);
 }
 
 static BOOL pf_client_notify_icon_update(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                              	  const NOTIFY_ICON_STATE_ORDER* notifyIconState)
+        const NOTIFY_ICON_STATE_ORDER* notifyIconState)
 {
 	WLog_DBG(TAG, __FUNCTION__);
-
 	pClientContext* pc = (pClientContext*)context;
 	rdpContext* ps = (rdpContext*) pc->pdata->ps;
 	return ps->update->window->NotifyIconUpdate(ps, orderInfo, notifyIconState);
@@ -243,7 +241,7 @@ static BOOL pf_client_notify_icon_delete(rdpContext* context, const WINDOW_ORDER
 }
 
 static BOOL pf_client_monitored_desktop(rdpContext* context, const WINDOW_ORDER_INFO* orderInfo,
-                                  const MONITORED_DESKTOP_ORDER* monitoredDesktop)
+                                        const MONITORED_DESKTOP_ORDER* monitoredDesktop)
 {
 	WLog_DBG(TAG, __FUNCTION__);
 	pClientContext* pc = (pClientContext*)context;
@@ -274,7 +272,6 @@ void pf_client_register_update_callbacks(rdpUpdate* update)
 	update->RemoteMonitors = pf_client_remote_monitors;
 	update->SaveSessionInfo = pf_client_save_session_info;
 	update->ServerStatusInfo = pf_client_server_status_info;
-
 	/* Rail window updates */
 	update->window->WindowCreate = pf_client_window_create;
 	update->window->WindowUpdate = pf_client_window_update;
@@ -286,7 +283,6 @@ void pf_client_register_update_callbacks(rdpUpdate* update)
 	update->window->NotifyIconDelete = pf_client_notify_icon_delete;
 	update->window->MonitoredDesktop = pf_client_monitored_desktop;
 	update->window->NonMonitoredDesktop = pf_client_non_monitored_desktop;
-
 	/* Pointer updates */
 	update->pointer->PointerSystem = pf_client_send_pointer_system;
 	update->pointer->PointerPosition = pf_client_send_pointer_position;

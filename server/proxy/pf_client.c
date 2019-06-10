@@ -195,7 +195,6 @@ static void pf_client_post_disconnect(freerdp* instance)
 	pdata = context->pdata;
 	ps = (rdpContext*) pdata->ps;
 	peer = ps->peer;
-
 	PubSub_UnsubscribeChannelConnected(instance->context->pubSub,
 	                                   pf_OnChannelConnectedEventHandler);
 	PubSub_UnsubscribeChannelDisconnected(instance->context->pubSub,

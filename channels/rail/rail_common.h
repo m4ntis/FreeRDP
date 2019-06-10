@@ -69,7 +69,7 @@ UINT rail_write_unicode_string(wStream* s, const RAIL_UNICODE_STRING* unicode_st
 UINT rail_write_unicode_string_value(wStream* s, const RAIL_UNICODE_STRING* unicode_string);
 
 UINT rail_read_sysparam_order(wStream* s, RAIL_SYSPARAM_ORDER* sysparam,
-							  BOOL extendedSpiSupported);
+                              BOOL extendedSpiSupported);
 UINT rail_write_sysparam_order(wStream* s, const RAIL_SYSPARAM_ORDER* sysparam,
                                BOOL extendedSpiSupported);
 

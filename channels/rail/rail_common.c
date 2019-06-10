@@ -156,7 +156,7 @@ UINT rail_write_unicode_string(wStream* s, const RAIL_UNICODE_STRING* unicode_st
  *
  * @return 0 on success, otherwise a Win32 error code
  */
- UINT rail_write_unicode_string_value(wStream* s, const RAIL_UNICODE_STRING* unicode_string)
+UINT rail_write_unicode_string_value(wStream* s, const RAIL_UNICODE_STRING* unicode_string)
 {
 	size_t length;
 
@@ -294,7 +294,7 @@ UINT rail_read_sysparam_order(wStream* s, RAIL_SYSPARAM_ORDER* sysparam,
 				WLog_ERR(TAG, "Stream_GetRemainingLength failed!");
 				return ERROR_INVALID_DATA;
 			}
-			
+
 			Stream_Read_UINT16(s, sysparam->displayChange.left); /* left (2 bytes) */
 			Stream_Read_UINT16(s, sysparam->displayChange.top); /* top (2 bytes) */
 			Stream_Read_UINT16(s, sysparam->displayChange.right); /* right (2 bytes) */
@@ -307,7 +307,7 @@ UINT rail_read_sysparam_order(wStream* s, RAIL_SYSPARAM_ORDER* sysparam,
 				WLog_ERR(TAG, "Stream_GetRemainingLength failed!");
 				return ERROR_INVALID_DATA;
 			}
-			
+
 			Stream_Read_UINT16(s, sysparam->taskbarPos.left); /* left (2 bytes) */
 			Stream_Read_UINT16(s, sysparam->taskbarPos.top); /* top (2 bytes) */
 			Stream_Read_UINT16(s, sysparam->taskbarPos.right); /* right (2 bytes) */
@@ -315,7 +315,6 @@ UINT rail_read_sysparam_order(wStream* s, RAIL_SYSPARAM_ORDER* sysparam,
 			break;
 
 		case SPI_SET_HIGH_CONTRAST:
-			
 			if (Stream_GetRemainingLength(s) < 8)
 			{
 				WLog_ERR(TAG, "Stream_GetRemainingLength failed!");
@@ -340,6 +339,7 @@ UINT rail_read_sysparam_order(wStream* s, RAIL_SYSPARAM_ORDER* sysparam,
 
 			if (sysparam->caretWidth < 0x0001)
 				return ERROR_INVALID_DATA;
+
 			break;
 
 		case SPI_SETSTICKYKEYS:
@@ -465,6 +465,7 @@ UINT rail_write_sysparam_order(wStream* s,
 			break;
 
 		case SPI_SETCARETWIDTH:
+
 			// TODO: check if this should be !extended...
 			if (extendedSpiSupported)
 				return ERROR_INVALID_DATA;

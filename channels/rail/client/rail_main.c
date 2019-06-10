@@ -201,7 +201,8 @@ static UINT rail_send_client_sysparam(RailClientContext* context,
 		return CHANNEL_RC_NO_MEMORY;
 	}
 
-	if ((error = rail_write_sysparam_order(s, sysparam, (rail->channelFlags & TS_RAIL_ORDER_HANDSHAKE_EX_FLAGS_EXTENDED_SPI_SUPPORTED) != 0)))
+	if ((error = rail_write_sysparam_order(s, sysparam,
+	                                       (rail->channelFlags & TS_RAIL_ORDER_HANDSHAKE_EX_FLAGS_EXTENDED_SPI_SUPPORTED) != 0)))
 	{
 		WLog_ERR(TAG, "rail_write_client_sysparam_order failed with error %"PRIu32"!", error);
 		Stream_Free(s, TRUE);

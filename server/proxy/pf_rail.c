@@ -44,7 +44,7 @@ BOOL pf_rail_context_init(pServerContext* ps)
 
 /* Callbacks from client side */
 static UINT pf_rail_server_handshake(RailClientContext* client,
-	const RAIL_HANDSHAKE_ORDER* handshake)
+                                     const RAIL_HANDSHAKE_ORDER* handshake)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -53,7 +53,7 @@ static UINT pf_rail_server_handshake(RailClientContext* client,
 }
 
 static UINT pf_rail_server_handshake_ex(RailClientContext* client,
-	const RAIL_HANDSHAKE_EX_ORDER* handshakeEx)
+                                        const RAIL_HANDSHAKE_EX_ORDER* handshakeEx)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -62,7 +62,7 @@ static UINT pf_rail_server_handshake_ex(RailClientContext* client,
 }
 
 static UINT pf_rail_server_sysparam(RailClientContext* client,
-	const RAIL_SYSPARAM_ORDER* sysparam)
+                                    const RAIL_SYSPARAM_ORDER* sysparam)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -71,7 +71,7 @@ static UINT pf_rail_server_sysparam(RailClientContext* client,
 }
 
 static UINT pf_rail_server_local_move_size(RailClientContext* client,
-	const RAIL_LOCALMOVESIZE_ORDER* localMoveSize)
+        const RAIL_LOCALMOVESIZE_ORDER* localMoveSize)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -80,7 +80,7 @@ static UINT pf_rail_server_local_move_size(RailClientContext* client,
 }
 
 static UINT pf_rail_server_min_max_info(RailClientContext* client,
-	const RAIL_MINMAXINFO_ORDER* minMaxInfo)
+                                        const RAIL_MINMAXINFO_ORDER* minMaxInfo)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -89,7 +89,7 @@ static UINT pf_rail_server_min_max_info(RailClientContext* client,
 }
 
 static UINT pf_rail_server_taskbar_info(RailClientContext* client,
-	const RAIL_TASKBAR_INFO_ORDER* taskbarInfo)
+                                        const RAIL_TASKBAR_INFO_ORDER* taskbarInfo)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -98,7 +98,7 @@ static UINT pf_rail_server_taskbar_info(RailClientContext* client,
 }
 
 static UINT pf_rail_server_langbar_info(RailClientContext* client,
-	const RAIL_LANGBAR_INFO_ORDER* langbarInfo)
+                                        const RAIL_LANGBAR_INFO_ORDER* langbarInfo)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -107,7 +107,7 @@ static UINT pf_rail_server_langbar_info(RailClientContext* client,
 }
 
 static UINT pf_rail_server_exec_result(RailClientContext* client,
-	const RAIL_EXEC_RESULT_ORDER* execResult)
+                                       const RAIL_EXEC_RESULT_ORDER* execResult)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -116,7 +116,7 @@ static UINT pf_rail_server_exec_result(RailClientContext* client,
 }
 
 static UINT pf_rail_server_z_order_sync(RailClientContext* client,
-	const RAIL_ZORDER_SYNC_ORDER* zOrderSync)
+                                        const RAIL_ZORDER_SYNC_ORDER* zOrderSync)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -125,7 +125,7 @@ static UINT pf_rail_server_z_order_sync(RailClientContext* client,
 }
 
 static UINT pf_rail_server_cloak(RailClientContext* client,
-	const RAIL_CLOAK_ORDER* cloak)
+                                 const RAIL_CLOAK_ORDER* cloak)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -134,7 +134,7 @@ static UINT pf_rail_server_cloak(RailClientContext* client,
 }
 
 static UINT pf_rail_server_power_display_request(RailClientContext* client,
-	const RAIL_POWER_DISPLAY_REQUEST_ORDER* powerDisplayRequest)
+        const RAIL_POWER_DISPLAY_REQUEST_ORDER* powerDisplayRequest)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -143,7 +143,7 @@ static UINT pf_rail_server_power_display_request(RailClientContext* client,
 }
 
 static UINT pf_rail_server_get_appid_resp(RailClientContext* client,
-	const RAIL_GET_APPID_RESP_ORDER* getAppidResp)
+        const RAIL_GET_APPID_RESP_ORDER* getAppidResp)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -152,7 +152,7 @@ static UINT pf_rail_server_get_appid_resp(RailClientContext* client,
 }
 
 static UINT pf_rail_server_get_appid_resp_ex(RailClientContext* client,
-	const RAIL_GET_APPID_RESP_EX_ORDER* getAppidRespEx)
+        const RAIL_GET_APPID_RESP_EX_ORDER* getAppidRespEx)
 {
 	proxyData* pdata = (proxyData*) client->custom;
 	RailServerContext* server = (RailServerContext*) pdata->ps->rail;
@@ -164,7 +164,7 @@ static UINT pf_rail_server_get_appid_resp_ex(RailClientContext* client,
 
 
 static UINT pf_rail_client_handshake(RailServerContext* server,
-	const RAIL_HANDSHAKE_ORDER* handshake)
+                                     const RAIL_HANDSHAKE_ORDER* handshake)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -173,7 +173,7 @@ static UINT pf_rail_client_handshake(RailServerContext* server,
 }
 
 static UINT pf_rail_client_client_status(RailServerContext* server,
-	const RAIL_CLIENT_STATUS_ORDER* clientStatus)
+        const RAIL_CLIENT_STATUS_ORDER* clientStatus)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -182,7 +182,7 @@ static UINT pf_rail_client_client_status(RailServerContext* server,
 }
 
 static UINT pf_rail_client_exec(RailServerContext* server,
-	const RAIL_EXEC_ORDER* exec)
+                                const RAIL_EXEC_ORDER* exec)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -191,7 +191,7 @@ static UINT pf_rail_client_exec(RailServerContext* server,
 }
 
 static UINT pf_rail_client_sysparam(RailServerContext* server,
-	const RAIL_SYSPARAM_ORDER* sysparam)
+                                    const RAIL_SYSPARAM_ORDER* sysparam)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -200,7 +200,7 @@ static UINT pf_rail_client_sysparam(RailServerContext* server,
 }
 
 static UINT pf_rail_client_activate(RailServerContext* server,
-	const RAIL_ACTIVATE_ORDER* activate)
+                                    const RAIL_ACTIVATE_ORDER* activate)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -209,7 +209,7 @@ static UINT pf_rail_client_activate(RailServerContext* server,
 }
 
 static UINT pf_rail_client_sysmenu(RailServerContext* server,
-	const RAIL_SYSMENU_ORDER* sysmenu)
+                                   const RAIL_SYSMENU_ORDER* sysmenu)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -218,7 +218,7 @@ static UINT pf_rail_client_sysmenu(RailServerContext* server,
 }
 
 static UINT pf_rail_client_syscommand(RailServerContext* server,
-	const RAIL_SYSCOMMAND_ORDER* syscommand)
+                                      const RAIL_SYSCOMMAND_ORDER* syscommand)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -227,7 +227,7 @@ static UINT pf_rail_client_syscommand(RailServerContext* server,
 }
 
 static UINT pf_rail_client_notify_event(RailServerContext* server,
-	const RAIL_NOTIFY_EVENT_ORDER* notifyEvent)
+                                        const RAIL_NOTIFY_EVENT_ORDER* notifyEvent)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -236,7 +236,7 @@ static UINT pf_rail_client_notify_event(RailServerContext* server,
 }
 
 static UINT pf_rail_client_window_move(RailServerContext* server,
-	const RAIL_WINDOW_MOVE_ORDER* windowMove)
+                                       const RAIL_WINDOW_MOVE_ORDER* windowMove)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -245,7 +245,7 @@ static UINT pf_rail_client_window_move(RailServerContext* server,
 }
 
 static UINT pf_rail_client_snap_arrange(RailServerContext* server,
-	const RAIL_SNAP_ARRANGE_ORDER* snapArrange)
+                                        const RAIL_SNAP_ARRANGE_ORDER* snapArrange)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -254,7 +254,7 @@ static UINT pf_rail_client_snap_arrange(RailServerContext* server,
 }
 
 static UINT pf_rail_client_get_appid_req(RailServerContext* server,
-	const RAIL_GET_APPID_REQ_ORDER* getAppidReq)
+        const RAIL_GET_APPID_REQ_ORDER* getAppidReq)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -263,7 +263,7 @@ static UINT pf_rail_client_get_appid_req(RailServerContext* server,
 }
 
 static UINT pf_rail_client_langbar_info(RailServerContext* server,
-	const RAIL_LANGBAR_INFO_ORDER* langbarInfo)
+                                        const RAIL_LANGBAR_INFO_ORDER* langbarInfo)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -272,7 +272,7 @@ static UINT pf_rail_client_langbar_info(RailServerContext* server,
 }
 
 static UINT pf_rail_client_language_ime_info(RailServerContext* server,
-	const RAIL_LANGUAGEIME_INFO_ORDER* languageImeInfo)
+        const RAIL_LANGUAGEIME_INFO_ORDER* languageImeInfo)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -281,14 +281,14 @@ static UINT pf_rail_client_language_ime_info(RailServerContext* server,
 }
 
 static UINT pf_rail_client_compartment_info(RailServerContext* server,
-	const RAIL_COMPARTMENT_INFO_ORDER* compartmentInfo)
+        const RAIL_COMPARTMENT_INFO_ORDER* compartmentInfo)
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	return 0;
 }
 
 static UINT pf_rail_client_cloak(RailServerContext* server,
-	const RAIL_CLOAK_ORDER* cloak)
+                                 const RAIL_CLOAK_ORDER* cloak)
 {
 	proxyData* pdata = (proxyData*) server->custom;
 	RailClientContext* client = (RailClientContext*) pdata->pc->rail;
@@ -302,7 +302,6 @@ void pf_rail_pipeline_init(RailClientContext* client, RailServerContext* server,
 	/* Set server and client side references to proxy data */
 	client->custom = (void*) pdata;
 	server->custom = (void*) pdata;
-
 	/* Set client callbacks */
 	client->ServerHandshake = pf_rail_server_handshake;
 	client->ServerHandshakeEx = pf_rail_server_handshake_ex;
@@ -317,7 +316,6 @@ void pf_rail_pipeline_init(RailClientContext* client, RailServerContext* server,
 	client->ServerPowerDisplayRequest = pf_rail_server_power_display_request;
 	client->ServerGetAppIdResponse = pf_rail_server_get_appid_resp;
 	client->ServerGetAppidResponseExtended = pf_rail_server_get_appid_resp_ex;
-
 	/* Set server callbacks */
 	server->ClientHandshake = pf_rail_client_handshake;
 	server->ClientClientStatus = pf_rail_client_client_status;

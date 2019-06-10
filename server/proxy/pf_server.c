@@ -132,7 +132,7 @@ static BOOL pf_server_get_target_info(rdpContext* context, rdpSettings* settings
 
 	if (config->UseLoadBalanceInfo)
 		return pf_server_parse_target_from_routing_token(context, &settings->ServerHostname,
-		                                                 &settings->ServerPort);
+		        &settings->ServerPort);
 
 	/* use hardcoded target info from configuration */
 	if (!(settings->ServerHostname = _strdup(config->TargetHost)))
@@ -160,12 +160,9 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	pServerContext* ps;
 	rdpContext* pc;
 	proxyData* pdata;
-
 	ps = (pServerContext*)client->context;
 	pdata = ps->pdata;
-
 	pc = p_client_context_create(client->settings);
-
 	/* keep both sides of the connection in pdata */
 	((pClientContext*)pc)->pdata = ps->pdata;
 	pdata->pc = (pClientContext*)pc;
@@ -184,7 +181,6 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 
 	pf_rail_context_init(ps);
 	pf_server_rdpgfx_init(ps);
-
 	ps->rail->Start(ps->rail);
 
 	/* Start a proxy's client in it's own thread */
@@ -231,6 +227,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 		goto out_free_peer;
 
 	ps = (pServerContext*)client->context;
+
 	if (!(ps->dynvcReady = CreateEvent(NULL, TRUE, FALSE, NULL)))
 	{
 		WLog_ERR(TAG, "pf_server_post_connect(): CreateEvent failed!");
@@ -252,7 +249,6 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	client->settings->CertificateFile = _strdup("server.crt");
 	client->settings->PrivateKeyFile = _strdup("server.key");
 	client->settings->RdpKeyFile = _strdup("server.key");
-
 	client->settings->RemoteApplicationSupportLevel = RAIL_LEVEL_SUPPORTED |
 	        RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED            |
 	        RAIL_LEVEL_SHELL_INTEGRATION_SUPPORTED         |
@@ -333,28 +329,28 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 
 		switch (WTSVirtualChannelManagerGetDrdynvcState(ps->vcm))
 		{
-		/* Dynamic channel status may have been changed after processing */
-		case DRDYNVC_STATE_NONE:
+			/* Dynamic channel status may have been changed after processing */
+			case DRDYNVC_STATE_NONE:
 
-			/* Initialize drdynvc channel */
-			if (!WTSVirtualChannelManagerCheckFileDescriptor(ps->vcm))
-			{
-				WLog_ERR(TAG, "Failed to initialize drdynvc channel");
-				goto fail;
-			}
+				/* Initialize drdynvc channel */
+				if (!WTSVirtualChannelManagerCheckFileDescriptor(ps->vcm))
+				{
+					WLog_ERR(TAG, "Failed to initialize drdynvc channel");
+					goto fail;
+				}
 
-			break;
+				break;
 
-		case DRDYNVC_STATE_READY:
-			if (WaitForSingleObject(ps->dynvcReady, 0) == WAIT_TIMEOUT)
-			{
-				SetEvent(ps->dynvcReady);
-			}
+			case DRDYNVC_STATE_READY:
+				if (WaitForSingleObject(ps->dynvcReady, 0) == WAIT_TIMEOUT)
+				{
+					SetEvent(ps->dynvcReady);
+				}
 
-			break;
+				break;
 
-		default:
-			break;
+			default:
+				break;
 		}
 	}
 

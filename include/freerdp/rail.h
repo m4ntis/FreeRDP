@@ -541,8 +541,10 @@ extern "C" {
 #endif
 
 FREERDP_API BOOL rail_read_unicode_string(wStream* s, RAIL_UNICODE_STRING* unicode_string);
-FREERDP_API BOOL utf8_string_to_rail_string(const char* string, RAIL_UNICODE_STRING* unicode_string);
-FREERDP_API BOOL rail_string_to_utf8_string(const RAIL_UNICODE_STRING* unicode_string, char* string);
+FREERDP_API BOOL utf8_string_to_rail_string(const char* string,
+        RAIL_UNICODE_STRING* unicode_string);
+FREERDP_API BOOL rail_string_to_utf8_string(const RAIL_UNICODE_STRING* unicode_string,
+        char* string);
 
 #ifdef __cplusplus
 }

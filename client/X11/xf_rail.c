@@ -218,6 +218,7 @@ static void xf_rail_invalidate_region(xfContext* xfc, REGION16* invalidRegion)
 	const RECTANGLE_16* extents;
 	REGION16 windowInvalidRegion;
 	region16_init(&windowInvalidRegion);
+
 	if (xfc->railWindows)
 		count = HashTable_GetKeys(xfc->railWindows, &pKeys);
 
@@ -622,11 +623,11 @@ static BOOL convert_rail_icon(ICON_INFO* iconInfo, xfRailIcon* railIcon)
 		goto error;
 
 	if (!freerdp_image_copy_from_icon_data(argbPixels,
-		PIXEL_FORMAT_ARGB32, 0, 0, 0,
-		iconInfo->width, iconInfo->height,
-		iconInfo->bitsColor, iconInfo->cbBitsColor,
-		iconInfo->bitsMask, iconInfo->cbBitsMask,
-		iconInfo->colorTable, iconInfo->cbColorTable, iconInfo->bpp))
+	                                       PIXEL_FORMAT_ARGB32, 0, 0, 0,
+	                                       iconInfo->width, iconInfo->height,
+	                                       iconInfo->bitsColor, iconInfo->cbBitsColor,
+	                                       iconInfo->bitsMask, iconInfo->cbBitsMask,
+	                                       iconInfo->colorTable, iconInfo->cbColorTable, iconInfo->bpp))
 		goto error;
 
 	nelements = 2 + iconInfo->width * iconInfo->height;
@@ -861,7 +862,6 @@ static UINT xf_rail_server_start_cmd(RailClientContext* context)
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_APPBAR_REMOTING_SUPPORTED;
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_POWER_DISPLAY_REQUEST_SUPPORTED;
 	clientStatus.flags |= TS_RAIL_CLIENTSTATUS_BIDIRECTIONAL_CLOAK_SUPPORTED;
-	
 	status = context->ClientInformation(context, &clientStatus);
 
 	if (status != CHANNEL_RC_OK)
@@ -902,11 +902,11 @@ static UINT xf_rail_server_start_cmd(RailClientContext* context)
 		return status;
 
 	if (!utf8_string_to_rail_string(settings->RemoteApplicationProgram,
-	                                   &exec.exeOrFile) ||
+	                                &exec.exeOrFile) ||
 	    !utf8_string_to_rail_string(settings->ShellWorkingDirectory,
-	                                  &exec.workingDir) ||
+	                                &exec.workingDir) ||
 	    !utf8_string_to_rail_string(settings->RemoteApplicationCmdLine,
-	                                  &exec.arguments))
+	                                &exec.arguments))
 		return ERROR_INTERNAL_ERROR;
 
 	return context->ClientExecute(context, &exec);

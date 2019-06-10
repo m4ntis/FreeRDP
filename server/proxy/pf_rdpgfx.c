@@ -175,7 +175,6 @@ static UINT pf_rdpgfx_map_surface_to_window(RdpgfxClientContext* context,
 {
 	proxyData* pdata = (proxyData*) context->custom;
 	RdpgfxServerContext* server = (RdpgfxServerContext*) pdata->ps->gfx;
-	printf("SurfaceToWindow: %ld\n", surfaceToWindow->windowId);
 	WLog_DBG(TAG, __FUNCTION__);
 	return server->MapSurfaceToWindow(server, surfaceToWindow);
 }
@@ -185,7 +184,6 @@ static UINT pf_rdpgfx_map_surface_to_scaled_window(RdpgfxClientContext* context,
 {
 	proxyData* pdata = (proxyData*) context->custom;
 	RdpgfxServerContext* server = (RdpgfxServerContext*) pdata->ps->gfx;
-	printf("SurfaceToScaledWindow: %ld\n", surfaceToScaledWindow->windowId);
 	WLog_DBG(TAG, __FUNCTION__);
 	return server->MapSurfaceToScaledWindow(server, surfaceToScaledWindow);
 }
@@ -264,7 +262,7 @@ static UINT pf_rdpgfx_caps_advertise(RdpgfxServerContext* context,
 		 * TODO: Have a better way of expressing max supported GFX caps version
 		 * by FreeRDP.
 		 */
-		if (currentCaps->version <= RDPGFX_CAPVERSION_106)
+		if (currentCaps->version <= RDPGFX_CAPVERSION_103)
 		{
 			proxySupportedCapsSet = &proxySupportedCapsSets[proxySupportedCapsSetCount++];
 			proxySupportedCapsSet->version = currentCaps->version;

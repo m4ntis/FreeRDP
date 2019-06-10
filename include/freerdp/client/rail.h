@@ -34,7 +34,7 @@
 typedef struct _rail_client_context RailClientContext;
 
 typedef UINT(*pcRailClientExecute)(RailClientContext* context,
-								   const RAIL_EXEC_ORDER* exec);
+                                   const RAIL_EXEC_ORDER* exec);
 typedef UINT(*pcRailClientActivate)(RailClientContext* context,
                                     const RAIL_ACTIVATE_ORDER* activate);
 typedef UINT(*pcRailClientSystemParam)(RailClientContext* context,

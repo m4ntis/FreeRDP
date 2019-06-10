@@ -37,7 +37,7 @@ struct _rail_server_private
 	void* rail_channel;
 
 	wStream* input_stream;
-	
+
 	DWORD channelBuildNumber;
 	DWORD channelFlags;
 };

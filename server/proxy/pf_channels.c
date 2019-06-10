@@ -45,7 +45,6 @@ void pf_OnChannelConnectedEventHandler(void* context,
 {
 	pClientContext* pc = (pClientContext*) context;
 	pServerContext* ps = pc->pdata->ps;
-
 	WLog_DBG(TAG, "Channel connected: %s", e->name);
 
 	if (strcmp(e->name, RDPEI_DVC_CHANNEL_NAME) == 0)

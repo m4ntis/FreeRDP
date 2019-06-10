@@ -17,16 +17,17 @@
 
 define_channel_server("rail")
 
-set(${MODULE_PREFIX}_SRCS
-	../rail_common.c
-	../rail_common.h
-	rail_main.c
-	rail_main.h)
+set($ {MODULE_PREFIX} _SRCS
+    .. / rail_common.c
+    .. / rail_common.h
+    rail_main.c
+    rail_main.h)
 
 include_directories(..)
 
-add_channel_server_library(${MODULE_PREFIX} ${MODULE_NAME} ${CHANNEL_NAME} FALSE "VirtualChannelEntryEx")
+add_channel_server_library($ {MODULE_PREFIX} $ {MODULE_NAME} $ {CHANNEL_NAME} FALSE
+                           "VirtualChannelEntryEx")
 
-target_link_libraries(${MODULE_NAME} freerdp)
+target_link_libraries($ {MODULE_NAME} freerdp)
 
-set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "Channels/${CHANNEL_NAME}/Server")
+set_property(TARGET $ {MODULE_NAME} PROPERTY FOLDER "Channels/${CHANNEL_NAME}/Server")

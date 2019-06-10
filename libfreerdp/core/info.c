@@ -488,8 +488,10 @@ static BOOL rdp_read_info_packet(rdpRdp* rdp, wStream* s)
 	settings->DisableCtrlAltDel = ((flags & INFO_DISABLECTRLALTDEL) ? TRUE : FALSE);
 	settings->ForceEncryptedCsPdu = ((flags & INFO_FORCE_ENCRYPTED_CS_PDU) ? TRUE : FALSE);
 	settings->PasswordIsSmartcardPin = ((flags & INFO_PASSWORD_IS_SC_PIN) ? TRUE : FALSE);
-	printf("GOT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n", settings->RemoteApplicationMode,
-		settings->HiDefRemoteApp);
+	printf("GOT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n",
+	       settings->RemoteApplicationMode,
+	       settings->HiDefRemoteApp);
+
 	if (flags & INFO_COMPRESSION)
 	{
 		CompressionLevel = ((flags & 0x00001E00) >> 9);
@@ -737,8 +739,9 @@ static void rdp_write_info_packet(rdpRdp* rdp, wStream* s)
 	{
 		if (settings->HiDefRemoteApp)
 		{
-			printf("SENT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n", settings->RemoteApplicationMode,
-		settings->HiDefRemoteApp);
+			printf("SENT CLIENT INFO PDU: RemoteApplicationMode: %i, HiDefRemoteApp: %i\n",
+			       settings->RemoteApplicationMode,
+			       settings->HiDefRemoteApp);
 			flags |= INFO_HIDEF_RAIL_SUPPORTED;
 		}
 
