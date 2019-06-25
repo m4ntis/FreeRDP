@@ -105,6 +105,8 @@ static UINT pf_cliprdr_ClientFileContentsRequest(CliprdrServerContext* context, 
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
+	if (!pdata->config->AllowFileCopy)
+		return CHANNEL_RC_OK;
 	CliprdrClientContext* client = pdata->pc->cliprdr;
 	return client->ClientFileContentsRequest(client, fileContentsRequest);
 }
@@ -113,6 +115,8 @@ static UINT pf_cliprdr_ClientFileContentsResponse(CliprdrServerContext* context,
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
+	if (!pdata->config->AllowFileCopy)
+		return CHANNEL_RC_OK;
 	CliprdrClientContext* client = pdata->pc->cliprdr;
 	return client->ClientFileContentsResponse(client, fileContentsResponse);
 }
@@ -193,6 +197,10 @@ static UINT pf_cliprdr_ServerFileContentsRequest(CliprdrClientContext* context, 
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
+
+	if (!pdata->config->AllowFileCopy)
+		return CHANNEL_RC_OK;
+
 	CliprdrServerContext* server = pdata->ps->cliprdr;
 	return server->ServerFileContentsRequest(server, fileContentsRequest);
 }
@@ -202,6 +210,10 @@ static UINT pf_cliprdr_ServerFileContentsResponse(CliprdrClientContext* context,
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
+	
+	if (!pdata->config->AllowFileCopy)
+		return CHANNEL_RC_OK;
+
 	CliprdrServerContext* server = pdata->ps->cliprdr;
 	return server->ServerFileContentsResponse(server, fileContentsResponse);
 }

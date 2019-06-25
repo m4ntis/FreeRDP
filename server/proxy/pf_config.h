@@ -63,6 +63,11 @@ struct proxy_config
 
 	/* filters */
 	filters_list* Filters;
+	char** BlockedChannels;
+	UINT32 BlockedChannelsCount;
+
+	/* clipboard */
+	BOOL AllowFileCopy;
 };
 
 typedef struct proxy_config proxyConfig;

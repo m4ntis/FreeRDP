@@ -160,6 +160,8 @@ DWORD pf_server_load_config(const char* path, proxyConfig* config)
 	config->TlsSecurity = IniFile_GetKeyValueInt(ini, "Security", "TlsSecurity");
 	config->NlaSecurity = IniFile_GetKeyValueInt(ini, "Security", "NlaSecurity");
 	config->RdpSecurity = IniFile_GetKeyValueInt(ini, "Security", "RdpSecurity");
+	/* clipboard */
+	config->AllowFileCopy = IniFile_GetKeyValueInt(ini, "Clipboard", "AllowFileCopy");
 	/* channels filtering */
 	config->WhitelistMode = IniFile_GetKeyValueInt(ini, "Channels", "WhitelistMode");
 	input = IniFile_GetKeyValueString(ini, "Channels", "AllowedChannels");
