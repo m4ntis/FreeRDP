@@ -68,6 +68,7 @@ struct proxy_config
 
 	/* clipboard */
 	BOOL AllowFileCopy;
+	UINT32 MaxTextLength;
 };
 
 typedef struct proxy_config proxyConfig;

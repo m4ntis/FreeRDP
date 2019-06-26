@@ -162,6 +162,7 @@ DWORD pf_server_load_config(const char* path, proxyConfig* config)
 	config->RdpSecurity = IniFile_GetKeyValueInt(ini, "Security", "RdpSecurity");
 	/* clipboard */
 	config->AllowFileCopy = IniFile_GetKeyValueInt(ini, "Clipboard", "AllowFileCopy");
+	config->MaxTextLength = IniFile_GetKeyValueInt(ini, "Clipboard", "MaxTextLength");
 	/* channels filtering */
 	config->WhitelistMode = IniFile_GetKeyValueInt(ini, "Channels", "WhitelistMode");
 	input = IniFile_GetKeyValueString(ini, "Channels", "AllowedChannels");

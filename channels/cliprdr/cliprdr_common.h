@@ -1,10 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * FreeRDP Proxy Server
+ * CLIPRDR Virtual Channel Extension
  *
- * Copyright 2019 Mati Shabtay <matishabtay@gmail.com>
  * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
- * Copyright 2019 Idan Freiberg <speidy@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,19 +17,17 @@
  * limitations under the License.
  */
 
-#ifndef FREERDP_SERVER_PROXY_PFCLIPRDR_H
-#define FREERDP_SERVER_PROXY_PFCLIPRDR_H
+#ifndef FREERDP_CHANNEL_CLIPRDR_COMMON_H
+#define FREERDP_CHANNEL_CLIPRDR_COMMON_H
 
-#include <freerdp/client/cliprdr.h>
-#include <freerdp/server/cliprdr.h>
+#include <winpr/crt.h>
+#include <winpr/stream.h>
 
-#include "pf_context.h"
+#include <freerdp/channels/cliprdr.h>
+#include <freerdp/api.h>
 
+FREERDP_LOCAL UINT cliprdr_read_header(wStream* s, CLIPRDR_HEADER* header);
+FREERDP_LOCAL UINT cliprdr_write_header(wStream* s, const CLIPRDR_HEADER* header);
 
-BOOL pf_cliprdr_init(pServerContext* ps);
-void pf_cliprdr_free(pServerContext* ps);
-void pf_cliprdr_channel_register(CliprdrClientContext* cliprdr_client,
-                                 CliprdrServerContext* cliprdr_server,
-                                 proxyData* pdata);
+#endif /* FREERDP_CHANNEL_CLIPRDR_COMMON_H */
 
-#endif /* FREERDP_SERVER_PROXY_PFCLIPRDR_H */
