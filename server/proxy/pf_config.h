@@ -67,7 +67,7 @@ struct proxy_config
 	UINT32 BlockedChannelsCount;
 
 	/* clipboard */
-	BOOL AllowFileCopy;
+	BOOL AllowOnlyText;
 	UINT32 MaxTextLength;
 };
 

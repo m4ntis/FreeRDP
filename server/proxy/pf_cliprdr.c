@@ -2,6 +2,9 @@
 #include "pf_log.h"
 
 #define TAG PROXY_TAG("cliprdr")
+#define TEXT_FORMATS_COUNT 3
+
+static CLIPRDR_FORMAT g_text_formats[] = { { CF_TEXT, '\0' }, { CF_OEMTEXT, '\0' }, { CF_UNICODETEXT, '\0' } };
 
 BOOL pf_cliprdr_init(pServerContext* ps)
 {
@@ -15,13 +18,11 @@ BOOL pf_cliprdr_init(pServerContext* ps)
 	}
 
 	cliprdr->rdpcontext = (rdpContext*)ps;
-
 	// enable all capabilities
 	cliprdr->useLongFormatNames = TRUE;
 	cliprdr->streamFileClipEnabled = TRUE;
 	cliprdr->fileClipNoFilePaths = TRUE;
 	cliprdr->canLockClipData = TRUE;
-
 	cliprdr->autoInitializationSequence = FALSE;
 	return cliprdr->Start(cliprdr);
 }
@@ -35,6 +36,28 @@ void pf_cliprdr_free(pServerContext* ps)
 	ps->cliprdr = NULL;
 }
 
+static inline BOOL pf_cliprdr_if_text_format(UINT32 format)
+{
+	switch (format)
+	{
+		case CF_TEXT:
+		case CF_OEMTEXT:
+		case CF_UNICODETEXT:
+			return TRUE;
+	}
+
+	return FALSE;
+}
+
+static inline void pf_cliprdr_create_text_only_format_list(CLIPRDR_FORMAT_LIST* list)
+{
+	list->msgFlags = CB_RESPONSE_OK;
+	list->msgType = CB_FORMAT_LIST;
+	list->dataLen = (4 + 1) * TEXT_FORMATS_COUNT;
+	list->numFormats = TEXT_FORMATS_COUNT;
+	list->formats = g_text_formats;
+}
+
 /* format data response PDU returns the copied text as a unicode buffer.
  * pf_cliprdr_is_copy_paste_valid returns TRUE if the length of the copied
  * text is valid according to the configuration value of `MaxTextLength`.
@@ -42,6 +65,7 @@ void pf_cliprdr_free(pServerContext* ps)
 static BOOL pf_cliprdr_is_copy_paste_valid(proxyConfig* config,
         const CLIPRDR_FORMAT_DATA_RESPONSE* pdu)
 {
+	// todo: check size according to format (text/unicode/oem).
 	size_t copy_len = (pdu->dataLen / 2) - 1;
 
 	if (copy_len > config->MaxTextLength)
@@ -60,16 +84,16 @@ static BOOL pf_cliprdr_is_copy_paste_valid(proxyConfig* config,
  * (because that destroys the state of the RDPECLIP channel). It is done by sending a
  * format_data_response PDU with msgFlags` = CB_RESPONSE_FAIL.
  */
-static void pf_cliprdr_create_failed_format_data_response(const CLIPRDR_FORMAT_DATA_RESPONSE* src,
-        CLIPRDR_FORMAT_DATA_RESPONSE* dst)
+static inline void pf_cliprdr_create_failed_format_data_response(CLIPRDR_FORMAT_DATA_RESPONSE* dst)
 {
-	dst->requestedFormatData = src->requestedFormatData;
-	dst->dataLen = src->dataLen;
-	dst->msgType = src->msgType;
+	dst->requestedFormatData = NULL;
+	dst->dataLen = 0;
+	dst->msgType = CB_FORMAT_DATA_RESPONSE;
 	dst->msgFlags = CB_RESPONSE_FAIL;
 }
 
-static void pf_cliprdr_create_failed_file_contents_response(const CLIPRDR_FILE_CONTENTS_RESPONSE*
+static inline void pf_cliprdr_create_failed_file_contents_response(const
+        CLIPRDR_FILE_CONTENTS_RESPONSE*
         src, CLIPRDR_FILE_CONTENTS_RESPONSE* dst)
 {
 	dst->cbRequested = src->cbRequested;
@@ -91,7 +115,8 @@ static UINT pf_cliprdr_ClientCapabilities(CliprdrServerContext* context,
 	return client->ClientCapabilities(client, capabilities);
 }
 
-static UINT pf_cliprdr_TempDirectory(CliprdrServerContext* context, const CLIPRDR_TEMP_DIRECTORY* tempDirectory)
+static UINT pf_cliprdr_TempDirectory(CliprdrServerContext* context,
+                                     const CLIPRDR_TEMP_DIRECTORY* tempDirectory)
 {
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
@@ -106,25 +131,15 @@ static UINT pf_cliprdr_ClientFormatList(CliprdrServerContext* context,
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrClientContext* client = pdata->pc->cliprdr;
 
-	if (pdata->config->AllowFileCopy)
-		return client->ClientFormatList(client, formatList);
+	if (pdata->config->AllowOnlyText)
+	{
+		CLIPRDR_FORMAT_LIST list;
+		pf_cliprdr_create_text_only_format_list(&list);
+		return client->ClientFormatList(client, &list);
+	}
 
 	/* send a format list that allows only text */
-	/* TODO: send this using an array holding the allowed formats for text:
-	 * CF_UNICODETEXT
-	 * CF_OEMTEXT
-	 * CF_TEXT
-	 */
-	CLIPRDR_FORMAT_LIST list;
-	list.msgFlags = CB_RESPONSE_OK;
-	list.msgType = CB_FORMAT_LIST;
-	list.dataLen = 4 * 1 + 1;
-	CLIPRDR_FORMAT formats[1] = { 0 };
-	formats[0].formatId = CF_UNICODETEXT;
-	formats[0].formatName = '\0';
-	list.numFormats = 1;
-	list.formats = formats;
-	return client->ClientFormatList(client, &list);
+	return client->ClientFormatList(client, formatList);
 }
 
 static UINT pf_cliprdr_ClientFormatListResponse(CliprdrServerContext* context,
@@ -160,15 +175,14 @@ static UINT pf_cliprdr_ClientFormatDataRequest(CliprdrServerContext* context,
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrClientContext* client = pdata->pc->cliprdr;
+	CliprdrServerContext* server = pdata->ps->cliprdr;
 
-	if (!pdata->config->AllowFileCopy && formatDataRequest->requestedFormatId != CF_UNICODETEXT)
+	if (pdata->config->AllowOnlyText &&
+	    !pf_cliprdr_if_text_format(formatDataRequest->requestedFormatId))
 	{
 		CLIPRDR_FORMAT_DATA_RESPONSE resp;
-		resp.msgFlags = CB_RESPONSE_FAIL;
-		resp.msgType = CB_FORMAT_DATA_RESPONSE;
-		resp.requestedFormatData = NULL;
-		resp.dataLen = 0;
-		return client->ClientFormatDataResponse(client, &resp);
+		pf_cliprdr_create_failed_format_data_response(&resp);
+		return server->ServerFormatDataResponse(server, &resp);
 	}
 
 	return client->ClientFormatDataRequest(client, formatDataRequest);
@@ -181,12 +195,14 @@ static UINT pf_cliprdr_ClientFormatDataResponse(CliprdrServerContext* context,
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrClientContext* client = pdata->pc->cliprdr;
 
-	if (client->lastRequestedFormatId == CF_UNICODETEXT &&
-	    !pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+	if (pf_cliprdr_if_text_format(client->lastRequestedFormatId))
 	{
-		CLIPRDR_FORMAT_DATA_RESPONSE resp;
-		pf_cliprdr_create_failed_format_data_response(formatDataResponse, &resp);
-		return client->ClientFormatDataResponse(client, &resp);
+		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+		{
+			CLIPRDR_FORMAT_DATA_RESPONSE resp;
+			pf_cliprdr_create_failed_format_data_response(&resp);
+			return client->ClientFormatDataResponse(client, &resp);
+		}
 	}
 
 	return client->ClientFormatDataResponse(client, formatDataResponse);
@@ -198,7 +214,7 @@ static UINT pf_cliprdr_ClientFileContentsRequest(CliprdrServerContext* context,
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
 
-	if (!pdata->config->AllowFileCopy)
+	if (pdata->config->AllowOnlyText)
 		return CHANNEL_RC_OK;
 
 	CliprdrClientContext* client = pdata->pc->cliprdr;
@@ -241,20 +257,14 @@ static UINT pf_cliprdr_ServerFormatList(CliprdrClientContext* context,
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrServerContext* server = pdata->ps->cliprdr;
 
-	if (pdata->config->AllowFileCopy)
-		return server->ServerFormatList(server, formatList);
+	if (pdata->config->AllowOnlyText)
+	{
+		CLIPRDR_FORMAT_LIST list;
+		pf_cliprdr_create_text_only_format_list(&list);
+		return server->ServerFormatList(server, &list);
+	}
 
-	/* send a format list that allows only text */
-	CLIPRDR_FORMAT_LIST list;
-	list.msgFlags = CB_RESPONSE_OK;
-	list.msgType = CB_FORMAT_LIST;
-	list.dataLen = 4 * 1 + 1;
-	CLIPRDR_FORMAT formats[1] = { 0 };
-	formats[0].formatId = CF_UNICODETEXT;
-	formats[0].formatName = '\0';
-	list.numFormats = 1;
-	list.formats = formats;
-	return server->ServerFormatList(server, &list);
+	return server->ServerFormatList(server, formatList);
 }
 
 
@@ -294,15 +304,15 @@ static UINT pf_cliprdr_ServerFormatDataRequest(CliprdrClientContext* context,
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrServerContext* server = pdata->ps->cliprdr;
+	CliprdrClientContext* client = pdata->pc->cliprdr;
 
-	if (!pdata->config->AllowFileCopy && formatDataRequest->requestedFormatId != CF_UNICODETEXT)
+	if (pdata->config->AllowOnlyText &&
+	    !pf_cliprdr_if_text_format(formatDataRequest->requestedFormatId))
 	{
+		/* proxy's client needs to return a failed response directly to the client */
 		CLIPRDR_FORMAT_DATA_RESPONSE resp;
-		resp.msgFlags = CB_RESPONSE_FAIL;
-		resp.msgType = CB_FORMAT_DATA_RESPONSE;
-		resp.requestedFormatData = NULL;
-		resp.dataLen = 0;
-		return server->ServerFormatDataResponse(server, &resp);
+		pf_cliprdr_create_failed_format_data_response(&resp);
+		return client->ClientFormatDataResponse(client, &resp);
 	}
 
 	return server->ServerFormatDataRequest(server, formatDataRequest);
@@ -315,12 +325,14 @@ static UINT pf_cliprdr_ServerFormatDataResponse(CliprdrClientContext* context,
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrServerContext* server = pdata->ps->cliprdr;
 
-	if (server->lastRequestedFormatId == CF_UNICODETEXT &&
-	    !pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+	if (pf_cliprdr_if_text_format(server->lastRequestedFormatId))
 	{
-		CLIPRDR_FORMAT_DATA_RESPONSE resp;
-		pf_cliprdr_create_failed_format_data_response(formatDataResponse, &resp);
-		return server->ServerFormatDataResponse(server, &resp);
+		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+		{
+			CLIPRDR_FORMAT_DATA_RESPONSE resp;
+			pf_cliprdr_create_failed_format_data_response(&resp);
+			return server->ServerFormatDataResponse(server, &resp);
+		}
 	}
 
 	return server->ServerFormatDataResponse(server, formatDataResponse);
@@ -333,7 +345,7 @@ static UINT pf_cliprdr_ServerFileContentsRequest(CliprdrClientContext* context,
 	WLog_INFO(TAG, __FUNCTION__);
 	proxyData* pdata = (proxyData*) context->custom;
 
-	if (!pdata->config->AllowFileCopy)
+	if (pdata->config->AllowOnlyText)
 		return CHANNEL_RC_OK;
 
 	CliprdrServerContext* server = pdata->ps->cliprdr;
@@ -348,7 +360,7 @@ static UINT pf_cliprdr_ServerFileContentsResponse(CliprdrClientContext* context,
 	proxyData* pdata = (proxyData*) context->custom;
 	CliprdrServerContext* server = pdata->ps->cliprdr;
 
-	if (!pdata->config->AllowFileCopy)
+	if (pdata->config->AllowOnlyText)
 	{
 		CLIPRDR_FILE_CONTENTS_RESPONSE resp;
 		pf_cliprdr_create_failed_file_contents_response(fileContentsResponse, &resp);
