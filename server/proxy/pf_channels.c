@@ -65,6 +65,11 @@ void pf_OnChannelConnectedEventHandler(void* data,
 		pc->gfx = (RdpgfxClientContext*) e->pInterface;
 		pf_rdpgfx_pipeline_init(pc->gfx, ps->gfx, pc->pdata);
 	}
+	else if (strcmp(e->name, "Bkey66") == 0)
+	{
+		PassthroughClientContext* ctx;
+		ctx = (PassthroughClientContext*) e->pInterface;
+	}
 	else if (strcmp(e->name, DISP_DVC_CHANNEL_NAME) == 0)
 	{
 		if (ps->disp->Open(ps->disp) != CHANNEL_RC_OK)
