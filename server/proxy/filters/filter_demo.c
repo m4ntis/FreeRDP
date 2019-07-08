@@ -35,7 +35,10 @@ static PF_FILTER_RESULT demo_filter_mouse_event(connectionInfo* info, void* para
 
 	if (event_data->x % 100 == 0)
 	{
+<<<<<<< HEAD
 		printf("filter_demo: mouse x is currently %"PRIu16"\n", event_data->x);
+=======
+>>>>>>> wip
 		return FILTER_PASS;
 	}
 

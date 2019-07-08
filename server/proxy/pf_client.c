@@ -124,6 +124,10 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 		return FALSE;
 	}
 
+	if (!freerdp_client_load_static_channel_addin(instance->context->channels, instance->settings, "plex",
+		        settings))
+			return FALSE;
+
 	return TRUE;
 }
 

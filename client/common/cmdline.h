@@ -194,4 +194,5 @@ static COMMAND_LINE_ARGUMENT_A args[] =
 	{ "workarea", COMMAND_LINE_VALUE_FLAG, NULL, NULL, NULL, -1, NULL, "Use available work area" },
 	{ NULL, 0, NULL, NULL, NULL, -1, NULL, NULL }
 };
+
 #endif /* CLIENT_COMMON_CMDLINE_H */

@@ -37,6 +37,8 @@ FREERDP_API int freerdp_client_settings_command_line_status_print_ex(
     rdpSettings* settings, int status, int argc, char** argv,
     COMMAND_LINE_ARGUMENT_A* custom);
 FREERDP_API BOOL freerdp_client_load_addins(rdpChannels* channels, rdpSettings* settings);
+FREERDP_API BOOL freerdp_client_load_static_channel_addin(rdpChannels* channels,
+    rdpSettings* settings, char* name, void* data);
 
 FREERDP_API BOOL freerdp_client_print_version(void);
 FREERDP_API BOOL freerdp_client_print_buildconfig(void);
