@@ -31,6 +31,7 @@
 #include <freerdp/client/cliprdr.h>
 #include <freerdp/client/rdpgfx.h>
 #include <freerdp/client/disp.h>
+#include <freerdp/client/passthrough.h>
 
 #include "pf_channels.h"
 #include "pf_client.h"

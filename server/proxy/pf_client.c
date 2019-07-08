@@ -116,7 +116,6 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 	 * settings.
 	 */
 	WLog_INFO(TAG, "Loading addins");
-
 	if (!freerdp_client_load_addins(instance->context->channels,
 	                                instance->settings))
 	{
@@ -126,7 +125,7 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 
 	if (!freerdp_client_load_static_channel_addin(instance->context->channels, instance->settings, "plex",
 		        settings))
-			return FALSE;
+		return FALSE;
 
 	return TRUE;
 }
