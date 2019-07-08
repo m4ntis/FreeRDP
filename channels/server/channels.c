@@ -51,6 +51,7 @@
 #include <freerdp/server/encomsp.h>
 #include <freerdp/server/rdpgfx.h>
 #include <freerdp/server/disp.h>
+#include <freerdp/server/passthrough.h>
 
 void freerdp_channels_dummy()
 {
@@ -65,6 +66,7 @@ void freerdp_channels_dummy()
 	EncomspServerContext* encomsp;
 	RdpgfxServerContext* rdpgfx;
 	DispServerContext* disp;
+	PassthroughServerContext* pass;
 	audin = audin_server_context_new(NULL);
 	audin_server_context_free(audin);
 	rdpsnd = rdpsnd_server_context_new(NULL);
@@ -87,6 +89,8 @@ void freerdp_channels_dummy()
 	rdpgfx_server_context_free(rdpgfx);
 	disp = disp_server_context_new(NULL);
 	disp_server_context_free(disp);
+	pass = passthrough_server_context_new(NULL);
+	passthrough_server_context_free(disp);
 }
 
 /**

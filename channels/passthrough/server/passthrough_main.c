@@ -30,81 +30,29 @@
 #include <freerdp/channels/log.h>
 #include <freerdp/server/passthrough.h>
 
-/**
- * Function description
- *
- * @return 0 on success, otherwise a Win32 error code
- */
-static UINT cliprdr_server_init(CliprdrServerContext* context)
-{
-	UINT32 generalFlags;
-	CLIPRDR_CAPABILITIES capabilities;
-	CLIPRDR_MONITOR_READY monitorReady;
-	CLIPRDR_GENERAL_CAPABILITY_SET generalCapabilitySet;
-	UINT error;
-	ZeroMemory(&capabilities, sizeof(capabilities));
-	ZeroMemory(&monitorReady, sizeof(monitorReady));
-	generalFlags = 0;
-
-	if (context->useLongFormatNames)
-		generalFlags |= CB_USE_LONG_FORMAT_NAMES;
-
-	if (context->streamFileClipEnabled)
-		generalFlags |= CB_STREAM_FILECLIP_ENABLED;
-
-	if (context->fileClipNoFilePaths)
-		generalFlags |= CB_FILECLIP_NO_FILE_PATHS;
-
-	if (context->canLockClipData)
-		generalFlags |= CB_CAN_LOCK_CLIPDATA;
-
-	capabilities.msgType = CB_CLIP_CAPS;
-	capabilities.msgFlags = 0;
-	capabilities.dataLen = 4 + CB_CAPSTYPE_GENERAL_LEN;
-	capabilities.cCapabilitiesSets = 1;
-	capabilities.capabilitySets = (CLIPRDR_CAPABILITY_SET*) &generalCapabilitySet;
-	generalCapabilitySet.capabilitySetType = CB_CAPSTYPE_GENERAL;
-	generalCapabilitySet.capabilitySetLength = CB_CAPSTYPE_GENERAL_LEN;
-	generalCapabilitySet.version = CB_CAPS_VERSION_2;
-	generalCapabilitySet.generalFlags = generalFlags;
-
-	if ((error = context->ServerCapabilities(context, &capabilities)))
-	{
-		WLog_ERR(TAG, "ServerCapabilities failed with error %"PRIu32"!", error);
-		return error;
-	}
-
-	if ((error = context->MonitorReady(context, &monitorReady)))
-	{
-		WLog_ERR(TAG, "MonitorReady failed with error %"PRIu32"!", error);
-		return error;
-	}
-
-	return error;
-}
+#include "passthrough_main.h"
 
 /**
  * Function description
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-UINT cliprdr_server_read(CliprdrServerContext* context)
+UINT passthrough_server_read(PassthroughServerContext* context)
 {
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 	wStream* s;
 	size_t position;
 	DWORD BytesToRead;
 	DWORD BytesReturned;
-	CLIPRDR_HEADER header;
-	PassthroughServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
 	UINT error;
 	DWORD status;
-	s = cliprdr->s;
+	s = passthrough->s;
 
-	if (Stream_GetPosition(s) < CLIPRDR_HEADER_LENGTH)
+	while (1)
 	{
 		BytesReturned = 0;
-		BytesToRead = CLIPRDR_HEADER_LENGTH - Stream_GetPosition(s);
-		status = WaitForSingleObject(cliprdr->ChannelEvent, 0);
+		BytesToRead = 4096;
+		status = WaitForSingleObject(passthrough->ChannelEvent, 0);
 
 		if (status == WAIT_FAILED)
 		{
@@ -114,137 +62,35 @@ UINT cliprdr_server_read(CliprdrServerContext* context)
 		}
 
 		if (status == WAIT_TIMEOUT)
-			return CHANNEL_RC_OK;
+			return 0; // channel ok
 
-		if (!WTSVirtualChannelRead(cliprdr->ChannelHandle, 0,
+		if (!WTSVirtualChannelRead(passthrough->ChannelHandle, 0,
 		                           (PCHAR) Stream_Pointer(s), BytesToRead, &BytesReturned))
 		{
 			WLog_ERR(TAG, "WTSVirtualChannelRead failed!");
 			return ERROR_INTERNAL_ERROR;
 		}
 
+		context->DataReceived(context, (BYTE*) Stream_Buffer(s), BytesReturned);
 		Stream_Seek(s, BytesReturned);
 	}
 
-	if (Stream_GetPosition(s) >= CLIPRDR_HEADER_LENGTH)
-	{
-		position = Stream_GetPosition(s);
-		Stream_SetPosition(s, 0);
-		Stream_Read_UINT16(s, header.msgType); /* msgType (2 bytes) */
-		Stream_Read_UINT16(s, header.msgFlags); /* msgFlags (2 bytes) */
-		Stream_Read_UINT32(s, header.dataLen); /* dataLen (4 bytes) */
-
-		if (!Stream_EnsureCapacity(s, (header.dataLen + CLIPRDR_HEADER_LENGTH)))
-		{
-			WLog_ERR(TAG, "Stream_EnsureCapacity failed!");
-			return CHANNEL_RC_NO_MEMORY;
-		}
-
-		Stream_SetPosition(s, position);
-
-		if (Stream_GetPosition(s) < (header.dataLen + CLIPRDR_HEADER_LENGTH))
-		{
-			BytesReturned = 0;
-			BytesToRead = (header.dataLen + CLIPRDR_HEADER_LENGTH) - Stream_GetPosition(s);
-			status = WaitForSingleObject(cliprdr->ChannelEvent, 0);
-
-			if (status == WAIT_FAILED)
-			{
-				error = GetLastError();
-				WLog_ERR(TAG, "WaitForSingleObject failed with error %"PRIu32"", error);
-				return error;
-			}
-
-			if (status == WAIT_TIMEOUT)
-				return CHANNEL_RC_OK;
-
-			if (!WTSVirtualChannelRead(cliprdr->ChannelHandle, 0,
-			                           (PCHAR) Stream_Pointer(s), BytesToRead, &BytesReturned))
-			{
-				WLog_ERR(TAG, "WTSVirtualChannelRead failed!");
-				return ERROR_INTERNAL_ERROR;
-			}
-
-			Stream_Seek(s, BytesReturned);
-		}
-
-		if (Stream_GetPosition(s) >= (header.dataLen + CLIPRDR_HEADER_LENGTH))
-		{
-			Stream_SetPosition(s, (header.dataLen + CLIPRDR_HEADER_LENGTH));
-			Stream_SealLength(s);
-			Stream_SetPosition(s, CLIPRDR_HEADER_LENGTH);
-
-			if ((error = cliprdr_server_receive_pdu(context, s, &header)))
-			{
-				WLog_ERR(TAG, "cliprdr_server_receive_pdu failed with error code %"PRIu32"!", error);
-				return error;
-			}
-
-			Stream_SetPosition(s, 0);
-			/* check for trailing zero bytes */
-			status = WaitForSingleObject(cliprdr->ChannelEvent, 0);
-
-			if (status == WAIT_FAILED)
-			{
-				error = GetLastError();
-				WLog_ERR(TAG, "WaitForSingleObject failed with error %"PRIu32"", error);
-				return error;
-			}
-
-			if (status == WAIT_TIMEOUT)
-				return CHANNEL_RC_OK;
-
-			BytesReturned = 0;
-			BytesToRead = 4;
-
-			if (!WTSVirtualChannelRead(cliprdr->ChannelHandle, 0,
-			                           (PCHAR) Stream_Pointer(s), BytesToRead, &BytesReturned))
-			{
-				WLog_ERR(TAG, "WTSVirtualChannelRead failed!");
-				return ERROR_INTERNAL_ERROR;
-			}
-
-			if (BytesReturned == 4)
-			{
-				Stream_Read_UINT16(s, header.msgType); /* msgType (2 bytes) */
-				Stream_Read_UINT16(s, header.msgFlags); /* msgFlags (2 bytes) */
-
-				if (!header.msgType)
-				{
-					/* ignore trailing bytes */
-					Stream_SetPosition(s, 0);
-				}
-			}
-			else
-			{
-				Stream_Seek(s, BytesReturned);
-			}
-		}
-	}
-
-	return CHANNEL_RC_OK;
+	return 0; // channel ok
 }
 
-static DWORD WINAPI cliprdr_server_thread(LPVOID arg)
+static DWORD WINAPI passthrough_server_thread(LPVOID arg)
 {
+	UINT error;
 	DWORD status;
 	DWORD nCount;
 	HANDLE events[8];
 	HANDLE ChannelEvent;
-	CliprdrServerContext* context = (CliprdrServerContext*) arg;
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
-	UINT error;
-
-	ChannelEvent = context->GetEventHandle(context);
+	PassthroughServerContext* context = (PassthroughServerContext*) arg;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
+	ChannelEvent = passthrough->ChannelEvent;
 	nCount = 0;
-	events[nCount++] = cliprdr->StopEvent;
+	events[nCount++] = passthrough->StopEvent;
 	events[nCount++] = ChannelEvent;
-
-	if ((error = cliprdr_server_init(context)))
-	{
-		WLog_ERR(TAG, "cliprdr_server_init failed with error %"PRIu32"!", error);
-		goto out;
-	}
 
 	while (1)
 	{
@@ -257,7 +103,7 @@ static DWORD WINAPI cliprdr_server_thread(LPVOID arg)
 			goto out;
 		}
 
-		status = WaitForSingleObject(cliprdr->StopEvent, 0);
+		status = WaitForSingleObject(passthrough->StopEvent, 0);
 
 		if (status == WAIT_FAILED)
 		{
@@ -280,7 +126,7 @@ static DWORD WINAPI cliprdr_server_thread(LPVOID arg)
 
 		if (status == WAIT_OBJECT_0)
 		{
-			if ((error = context->CheckEventHandle(context)))
+			if ((error = passthrough_server_read(context)))
 			{
 				WLog_ERR(TAG, "CheckEventHandle failed with error %"PRIu32"!", error);
 				break;
@@ -292,7 +138,7 @@ out:
 
 	if (error && context->rdpcontext)
 		setChannelError(context->rdpcontext, error,
-		                "cliprdr_server_thread reported an error");
+		                "passthrough_server_thread reported an error");
 
 	ExitThread(error);
 	return error;
@@ -303,23 +149,23 @@ out:
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT cliprdr_server_open(CliprdrServerContext* context)
+static UINT passthrough_server_open(PassthroughServerContext* context)
 {
 	void* buffer = NULL;
 	DWORD BytesReturned = 0;
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
-	cliprdr->ChannelHandle = WTSVirtualChannelOpen(cliprdr->vcm,
-	                         WTS_CURRENT_SESSION, "cliprdr");
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
+	passthrough->ChannelHandle = WTSVirtualChannelOpen(passthrough->vcm,
+	                         WTS_CURRENT_SESSION, "passthrough");
 
-	if (!cliprdr->ChannelHandle)
+	if (!passthrough->ChannelHandle)
 	{
-		WLog_ERR(TAG, "WTSVirtualChannelOpen for cliprdr failed!");
+		WLog_ERR(TAG, "WTSVirtualChannelOpen for passthrough failed!");
 		return ERROR_INTERNAL_ERROR;
 	}
 
-	cliprdr->ChannelEvent = NULL;
+	passthrough->ChannelEvent = NULL;
 
-	if (WTSVirtualChannelQuery(cliprdr->ChannelHandle, WTSVirtualEventHandle,
+	if (WTSVirtualChannelQuery(passthrough->ChannelHandle, WTSVirtualEventHandle,
 	                           &buffer, &BytesReturned))
 	{
 		if (BytesReturned != sizeof(HANDLE))
@@ -328,13 +174,13 @@ static UINT cliprdr_server_open(CliprdrServerContext* context)
 			return ERROR_INTERNAL_ERROR;
 		}
 
-		CopyMemory(&(cliprdr->ChannelEvent), buffer, sizeof(HANDLE));
+		CopyMemory(&(passthrough->ChannelEvent), buffer, sizeof(HANDLE));
 		WTSFreeMemory(buffer);
 	}
 
-	if (!cliprdr->ChannelEvent)
+	if (!passthrough->ChannelEvent)
 	{
-		WLog_ERR(TAG, "WTSVirtualChannelQuery for cliprdr failed!");
+		WLog_ERR(TAG, "WTSVirtualChannelQuery for passthrough failed!");
 		return ERROR_INTERNAL_ERROR;
 	}
 
@@ -346,14 +192,14 @@ static UINT cliprdr_server_open(CliprdrServerContext* context)
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT cliprdr_server_close(CliprdrServerContext* context)
+static UINT passthrough_server_close(PassthroughServerContext* context)
 {
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 
-	if (cliprdr->ChannelHandle)
+	if (passthrough->ChannelHandle)
 	{
-		WTSVirtualChannelClose(cliprdr->ChannelHandle);
-		cliprdr->ChannelHandle = NULL;
+		WTSVirtualChannelClose(passthrough->ChannelHandle);
+		passthrough->ChannelHandle = NULL;
 	}
 
 	return CHANNEL_RC_OK;
@@ -364,12 +210,12 @@ static UINT cliprdr_server_close(CliprdrServerContext* context)
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT cliprdr_server_start(CliprdrServerContext* context)
+static UINT passthrough_server_start(PassthroughServerContext* context)
 {
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 	UINT error;
 
-	if (!cliprdr->ChannelHandle)
+	if (!passthrough->ChannelHandle)
 	{
 		if ((error = context->Open(context)))
 		{
@@ -378,17 +224,17 @@ static UINT cliprdr_server_start(CliprdrServerContext* context)
 		}
 	}
 
-	if (!(cliprdr->StopEvent = CreateEvent(NULL, TRUE, FALSE, NULL)))
+	if (!(passthrough->StopEvent = CreateEvent(NULL, TRUE, FALSE, NULL)))
 	{
 		WLog_ERR(TAG, "CreateEvent failed!");
 		return ERROR_INTERNAL_ERROR;
 	}
 
-	if (!(cliprdr->Thread = CreateThread(NULL, 0, cliprdr_server_thread, (void*) context, 0, NULL)))
+	if (!(passthrough->Thread = CreateThread(NULL, 0, passthrough_server_thread, (void*) context, 0, NULL)))
 	{
 		WLog_ERR(TAG, "CreateThread failed!");
-		CloseHandle(cliprdr->StopEvent);
-		cliprdr->StopEvent = NULL;
+		CloseHandle(passthrough->StopEvent);
+		passthrough->StopEvent = NULL;
 		return ERROR_INTERNAL_ERROR;
 	}
 
@@ -400,81 +246,54 @@ static UINT cliprdr_server_start(CliprdrServerContext* context)
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT cliprdr_server_stop(CliprdrServerContext* context)
+static UINT passthrough_server_stop(PassthroughServerContext* context)
 {
 	UINT error = CHANNEL_RC_OK;
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 
-	if (cliprdr->StopEvent)
+	if (passthrough->StopEvent)
 	{
-		SetEvent(cliprdr->StopEvent);
+		SetEvent(passthrough->StopEvent);
 
-		if (WaitForSingleObject(cliprdr->Thread, INFINITE) == WAIT_FAILED)
+		if (WaitForSingleObject(passthrough->Thread, INFINITE) == WAIT_FAILED)
 		{
 			error = GetLastError();
 			WLog_ERR(TAG, "WaitForSingleObject failed with error %"PRIu32"", error);
 			return error;
 		}
 
-		CloseHandle(cliprdr->Thread);
-		CloseHandle(cliprdr->StopEvent);
+		CloseHandle(passthrough->Thread);
+		CloseHandle(passthrough->StopEvent);
 	}
 
-	if (cliprdr->ChannelHandle)
+	if (passthrough->ChannelHandle)
 		return context->Close(context);
 
 	return error;
 }
 
-static HANDLE cliprdr_server_get_event_handle(CliprdrServerContext* context)
+PassthroughServerContext* passthrough_server_context_new(HANDLE vcm)
 {
-	CliprdrServerPrivate* cliprdr = (CliprdrServerPrivate*) context->handle;
-	return cliprdr->ChannelEvent;
-}
-
-/**
- * Function description
- *
- * @return 0 on success, otherwise a Win32 error code
- */
-static UINT cliprdr_server_check_event_handle(CliprdrServerContext* context)
-{
-	return cliprdr_server_read(context);
-}
-
-CliprdrServerContext* cliprdr_server_context_new(HANDLE vcm)
-{
-	CliprdrServerContext* context;
-	CliprdrServerPrivate* cliprdr;
-	context = (CliprdrServerContext*) calloc(1, sizeof(CliprdrServerContext));
+	PassthroughServerContext* context;
+	PassthroughServerPrivate* passthrough;
+	context = (PassthroughServerContext*) calloc(1, sizeof(PassthroughServerContext));
 
 	if (context)
 	{
-		context->Open = cliprdr_server_open;
-		context->Close = cliprdr_server_close;
-		context->Start = cliprdr_server_start;
-		context->Stop = cliprdr_server_stop;
-		context->GetEventHandle = cliprdr_server_get_event_handle;
-		context->CheckEventHandle = cliprdr_server_check_event_handle;
-		context->ServerCapabilities = cliprdr_server_capabilities;
-		context->MonitorReady = cliprdr_server_monitor_ready;
-		context->ServerFormatList = cliprdr_server_format_list;
-		context->ServerFormatListResponse = cliprdr_server_format_list_response;
-		context->ServerLockClipboardData = cliprdr_server_lock_clipboard_data;
-		context->ServerUnlockClipboardData = cliprdr_server_unlock_clipboard_data;
-		context->ServerFormatDataRequest = cliprdr_server_format_data_request;
-		context->ServerFormatDataResponse = cliprdr_server_format_data_response;
-		context->ServerFileContentsRequest = cliprdr_server_file_contents_request;
-		context->ServerFileContentsResponse = cliprdr_server_file_contents_response;
-		cliprdr = context->handle = (CliprdrServerPrivate*) calloc(1,
-		                            sizeof(CliprdrServerPrivate));
+		context->Open = passthrough_server_open;
+		context->Close = passthrough_server_close;
+		context->Start = passthrough_server_start;
+		context->Stop = passthrough_server_stop;
+		
+		passthrough = context->handle = (PassthroughServerPrivate*) calloc(1,
+		                            sizeof(PassthroughServerPrivate));
 
-		if (cliprdr)
+		if (passthrough)
 		{
-			cliprdr->vcm = vcm;
-			cliprdr->s = Stream_New(NULL, 4096);
+			passthrough->vcm = vcm;
+			passthrough->s = Stream_New(NULL, 4096);
 
-			if (!cliprdr->s)
+			if (!passthrough->s)
 			{
 				WLog_ERR(TAG, "Stream_New failed!");
 				free(context->handle);
@@ -493,19 +312,18 @@ CliprdrServerContext* cliprdr_server_context_new(HANDLE vcm)
 	return context;
 }
 
-void cliprdr_server_context_free(CliprdrServerContext* context)
+void passthrough_server_context_free(PassthroughServerContext* context)
 {
-	CliprdrServerPrivate* cliprdr;
+	PassthroughServerPrivate* passthrough;
 
 	if (!context)
 		return;
 
-	cliprdr = (CliprdrServerPrivate*) context->handle;
+	passthrough = (PassthroughServerPrivate*) context->handle;
 
-	if (cliprdr)
+	if (passthrough)
 	{
-		Stream_Free(cliprdr->s, TRUE);
-		free(cliprdr->temporaryDirectory);
+		Stream_Free(passthrough->s, TRUE);
 	}
 
 	free(context->handle);

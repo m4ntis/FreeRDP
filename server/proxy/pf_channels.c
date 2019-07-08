@@ -39,10 +39,15 @@
 #include "pf_rdpgfx.h"
 #include "pf_log.h"
 #include "pf_disp.h"
+#include "pf_passthrough.h"
 
 #define TAG PROXY_TAG("channels")
 
+<<<<<<< HEAD
 void pf_OnChannelConnectedEventHandler(void* data,
+=======
+void pf_OnChannelConnectedEventHandler(void* context,
+>>>>>>> wip
                                        ChannelConnectedEventArgs* e)
 {
 	pClientContext* pc = (pClientContext*) data;
@@ -67,8 +72,8 @@ void pf_OnChannelConnectedEventHandler(void* data,
 	}
 	else if (strcmp(e->name, "Bkey66") == 0)
 	{
-		PassthroughClientContext* ctx;
-		ctx = (PassthroughClientContext*) e->pInterface;
+		pc->pass = (PassthroughClientContext*) e->pInterface;
+		pf_passthrough_pipeline_init(pc->pass, ps->pass, pc->pdata);
 	}
 	else if (strcmp(e->name, DISP_DVC_CHANNEL_NAME) == 0)
 	{

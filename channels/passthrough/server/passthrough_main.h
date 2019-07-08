@@ -29,6 +29,8 @@
 
 #define TAG CHANNELS_TAG("plex.server")
 
+typedef struct _passthrough_server_private PassthroughServerPrivate;
+
 struct _passthrough_server_private
 {
 	HANDLE vcm;
@@ -39,6 +41,5 @@ struct _passthrough_server_private
 
 	wStream* s;
 };
-typedef struct _passthrough_server_private PassthroughServerPrivate;
 
 #endif /* FREERDP_CHANNEL_PASSTHROUGH_SERVER_MAIN_H */

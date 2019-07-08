@@ -17,12 +17,12 @@
 
 define_channel_server("plex")
 
-# set(${MODULE_PREFIX}_SRCS
-# 	passthrough_main.c
-# 	passthrough_main.h)
+set(${MODULE_PREFIX}_SRCS
+	passthrough_main.c
+	passthrough_main.h)
 
-# add_channel_server_library(${MODULE_PREFIX} ${MODULE_NAME} ${CHANNEL_NAME} FALSE "VirtualChannelEntry")
+add_channel_server_library(${MODULE_PREFIX} ${MODULE_NAME} ${CHANNEL_NAME} FALSE "VirtualChannelEntry")
 
-# target_link_libraries(${MODULE_NAME} freerdp)
+target_link_libraries(${MODULE_NAME} freerdp)
 
-# set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "Channels/${CHANNEL_NAME}/Server")
+set_property(TARGET ${MODULE_NAME} PROPERTY FOLDER "Channels/${CHANNEL_NAME}/Server")

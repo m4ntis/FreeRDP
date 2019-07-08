@@ -115,7 +115,7 @@ static UINT passthrough_virtual_channel_event_data_received(passthroughPlugin* p
 	{
 		if (Stream_Capacity(data_in) != Stream_GetPosition(data_in))
 		{
-			WLog_ERR(TAG, "cliprdr_plugin_process_received: read error");
+			WLog_ERR(TAG, "passthrough_plugin_process_received: read error");
 			return ERROR_INTERNAL_ERROR;
 		}
 
@@ -126,7 +126,8 @@ static UINT passthrough_virtual_channel_event_data_received(passthroughPlugin* p
 		/* send all received data */
 		context->DataReceived(context, (BYTE*) Stream_Buffer(data_in), dataLength);
 	}
-
+	
+	Stream_Free(passthrough->data_in, TRUE);
 	return CHANNEL_RC_OK;
 }
 

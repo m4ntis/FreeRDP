@@ -49,7 +49,11 @@
 #include "pf_update.h"
 #include "pf_rdpgfx.h"
 #include "pf_disp.h"
+<<<<<<< HEAD
 #include "pf_channels.h"
+=======
+#include "pf_passthrough.h"
+>>>>>>> wip
 
 #define TAG PROXY_TAG("server")
 
@@ -162,11 +166,17 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	WLog_INFO(TAG, "pf_server_post_connect(): target == %s:%"PRIu16"", pc->settings->ServerHostname,
 	      pc->settings->ServerPort);
 
+<<<<<<< HEAD
 	if (!pf_server_channels_init(ps))
 	{
 		WLog_ERR(TAG, "pf_server_post_connect(): failed to initialize server's channels!");
 		return FALSE;
 	}
+=======
+	pf_server_rdpgfx_init(ps);
+	pf_server_passthrough_init(ps);
+	pf_server_disp_init(ps);
+>>>>>>> wip
 
 	/* Start a proxy's client in it's own thread */
 	if (!(pdata->client_thread = CreateThread(NULL, 0, pf_client_start, pc, 0, NULL)))

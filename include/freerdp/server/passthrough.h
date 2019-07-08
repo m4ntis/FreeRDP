@@ -22,18 +22,45 @@
 #ifndef FREERDP_CHANNEL_PASSTHROUGH_SERVER_PASSTHROUGH_H
 #define FREERDP_CHANNEL_PASSTHROUGH_SERVER_PASSTHROUGH_H
 
+#include <freerdp/channels/wtsvc.h>
+#include <freerdp/freerdp.h>
 #include <winpr/wtypes.h>
-
-typedef UINT (*cbDataReceived)(PassthroughServerContext* context, const BYTE* data);
 
 typedef struct _passthrough_server_context PassthroughServerContext;
 
+typedef UINT (*cbPassthroughDataReceived)(PassthroughServerContext* context, const BYTE* data, UINT32 len);
+typedef UINT (*cbPassthroughSendData)(PassthroughServerContext* context, BYTE* data, UINT32 len);
+typedef UINT (*cbPassthroughOpen)(PassthroughServerContext* context);
+typedef UINT (*cbPassthroughClose)(PassthroughServerContext* context);
+typedef UINT (*cbPassthroughStart)(PassthroughServerContext* context);
+typedef UINT (*cbPassthroughStop)(PassthroughServerContext* context);
+
 struct _passthrough_server_context
 {
-	cbDataReceived DataReceived;
+	cbPassthroughOpen Open;
+	cbPassthroughClose Close;
+	cbPassthroughStart Start;
+	cbPassthroughStop Stop;
+
+	cbPassthroughDataReceived DataReceived;
+	cbPassthroughSendData SendData;
 	
+	rdpContext* rdpcontext;
+
 	void* handle;
 	void* custom;
 };
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+FREERDP_API PassthroughServerContext* passthrough_server_context_new(HANDLE vcm);
+FREERDP_API void passthrough_server_context_free(PassthroughServerContext* context);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* FREERDP_CHANNEL_PASSTHROUGH_SERVER_PASSTHROUGH_H */
