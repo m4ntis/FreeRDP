@@ -1,11 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Clipboard Virtual Channel
+ * Passthrough virtual channel
  *
- * Copyright 2009-2011 Jay Sorg
- * Copyright 2010-2011 Vic Lee
- * Copyright 2015 Thincast Technologies GmbH
- * Copyright 2015 DI (FH) Martin Haimberger <martin.haimberger@thincast.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +46,21 @@ PassthroughClientContext* passthrough_get_client_interface(passthroughPlugin* pa
  *
  * @return 0 on success, otherwise a Win32 error code
  */
-static UINT passthrough_send_data(PassthroughClientContext* context, BYTE* data, UINT32 len)
+static UINT passthrough_send_data(PassthroughClientContext* context, const BYTE* data, UINT32 len)
 {
+	/* the underline buffer is the wStream object that the passthrough server users.
+	 * when pVirtualChannelWriteEx completes, it automatically frees `s`, which causes the underling
+	 * buffer to be freed to, if isOwner is not set to FALSE.
+	 */
+	wStream *s = Stream_New((BYTE*) data, len);
+	if (!s)
+	{
+		WLog_ERR(TAG, "malloc failed!");
+		return CHANNEL_RC_NO_MEMORY;
+	}
+
+	s->isOwner = FALSE;
+
 	passthroughPlugin* passthrough = (passthroughPlugin*) context->handle;
 	UINT status;
 
@@ -62,7 +72,7 @@ static UINT passthrough_send_data(PassthroughClientContext* context, BYTE* data,
 	{
 		status = passthrough->channelEntryPoints.pVirtualChannelWriteEx(passthrough->InitHandle,
 		         passthrough->OpenHandle,
-		         data, len, data);
+		         (PCHAR) Stream_Buffer(s), len, s);
 	}
 
 	if (status != CHANNEL_RC_OK)
@@ -80,55 +90,11 @@ static UINT passthrough_send_data(PassthroughClientContext* context, BYTE* data,
 static UINT passthrough_virtual_channel_event_data_received(passthroughPlugin* passthrough,
         void* pData, UINT32 dataLength, UINT32 totalLength, UINT32 dataFlags)
 {
+	WLog_DBG(TAG, __FUNCTION__);
+	UINT error = CHANNEL_RC_OK;
 	PassthroughClientContext* context = passthrough_get_client_interface(passthrough);
-	wStream* data_in;
-
-	if ((dataFlags & CHANNEL_FLAG_SUSPEND) || (dataFlags & CHANNEL_FLAG_RESUME))
-	{
-		return CHANNEL_RC_OK;
-	}
-
-	if (dataFlags & CHANNEL_FLAG_FIRST)
-	{
-		if (passthrough->data_in)
-			Stream_Free(passthrough->data_in, TRUE);
-
-		passthrough->data_in = Stream_New(NULL, totalLength);
-	}
-
-	if (!(data_in = passthrough->data_in))
-	{
-		WLog_ERR(TAG, "Stream_New failed!");
-		return CHANNEL_RC_NO_MEMORY;
-	}
-
-	if (!Stream_EnsureRemainingCapacity(data_in, dataLength))
-	{
-		Stream_Free(passthrough->data_in, TRUE);
-		passthrough->data_in = NULL;
-		return CHANNEL_RC_NO_MEMORY;
-	}
-
-	Stream_Write(data_in, pData, dataLength);
-
-	if (dataFlags & CHANNEL_FLAG_LAST)
-	{
-		if (Stream_Capacity(data_in) != Stream_GetPosition(data_in))
-		{
-			WLog_ERR(TAG, "passthrough_plugin_process_received: read error");
-			return ERROR_INTERNAL_ERROR;
-		}
-
-		passthrough->data_in = NULL;
-		Stream_SealLength(data_in);
-		Stream_SetPosition(data_in, 0);
-
-		/* send all received data */
-		context->DataReceived(context, (BYTE*) Stream_Buffer(data_in), dataLength);
-	}
-	
-	Stream_Free(passthrough->data_in, TRUE);
-	return CHANNEL_RC_OK;
+	IFCALLRET(context->DataReceived, error, context, pData, dataLength);
+	return error;
 }
 
 static VOID VCAPITYPE passthrough_virtual_channel_open_event_ex(LPVOID lpUserParam, DWORD openHandle,
@@ -211,12 +177,6 @@ static UINT passthrough_virtual_channel_event_disconnected(passthroughPlugin* pa
 
 	passthrough->OpenHandle = 0;
 
-	if (passthrough->data_in)
-	{
-		Stream_Free(passthrough->data_in, TRUE);
-		passthrough->data_in = NULL;
-	}
-
 	return CHANNEL_RC_OK;
 }
 
@@ -292,10 +252,8 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	}
 
 	passthrough->channelDef.options =
-	    CHANNEL_OPTION_INITIALIZED |
-	    CHANNEL_OPTION_ENCRYPT_RDP |
-	    CHANNEL_OPTION_COMPRESS_RDP |
-	    CHANNEL_OPTION_SHOW_PROTOCOL;
+	    CHANNEL_OPTION_INITIALIZED;
+
 	sprintf_s(passthrough->channelDef.name, ARRAYSIZE(passthrough->channelDef.name), "Bkey66");
 	pEntryPointsEx = (CHANNEL_ENTRY_POINTS_FREERDP_EX*) pEntryPoints;
 

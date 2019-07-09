@@ -52,12 +52,7 @@ struct p_server_context
 
 	RdpgfxServerContext* gfx;
 	DispServerContext* disp;
-<<<<<<< HEAD
-=======
 	PassthroughServerContext* pass;
-
-	BOOL dispOpened;
->>>>>>> wip
 };
 typedef struct p_server_context pServerContext;
 
@@ -73,7 +68,7 @@ struct p_client_context
 	RdpeiClientContext* rdpei;
 	RdpgfxClientContext* gfx;
 	DispClientContext* disp;
-<<<<<<< HEAD
+	PassthroughClientContext* pass;
 
 	/*
 	 * In a case when freerdp_connect fails,
@@ -84,9 +79,6 @@ struct p_client_context
 	 * to ensure graceful shutdown of the connection when it will be closed.
 	 */
 	BOOL during_connect_process;
-=======
-	PassthroughClientContext* pass;
->>>>>>> wip
 };
 typedef struct p_client_context pClientContext;
 

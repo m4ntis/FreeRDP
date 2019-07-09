@@ -43,11 +43,7 @@
 
 #define TAG PROXY_TAG("channels")
 
-<<<<<<< HEAD
 void pf_OnChannelConnectedEventHandler(void* data,
-=======
-void pf_OnChannelConnectedEventHandler(void* context,
->>>>>>> wip
                                        ChannelConnectedEventArgs* e)
 {
 	pClientContext* pc = (pClientContext*) data;
@@ -72,6 +68,12 @@ void pf_OnChannelConnectedEventHandler(void* context,
 	}
 	else if (strcmp(e->name, "Bkey66") == 0)
 	{
+		if (!ps->pass->Open(ps->pass))
+		{
+			WLog_ERR(TAG, "failed to open GFX server");
+			return;
+		}
+
 		pc->pass = (PassthroughClientContext*) e->pInterface;
 		pf_passthrough_pipeline_init(pc->pass, ps->pass, pc->pdata);
 	}
@@ -133,6 +135,9 @@ BOOL pf_server_channels_init(pServerContext* ps)
 		if (!pf_server_disp_init(ps))
 			return FALSE;
 	}
+
+	if (!pf_server_passthrough_init(ps))
+		return FALSE;
 
 	return TRUE;
 }

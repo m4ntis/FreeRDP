@@ -1,10 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Clipboard Virtual Channel
+ * Passthrough virtual channel
  *
- * Copyright 2009-2011 Jay Sorg
- * Copyright 2010-2011 Vic Lee
- * Copyright 2015 DI (FH) Martin Haimberger <martin.haimberger@thincast.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,7 +37,6 @@ struct passthrough_plugin
 
 	wLog* log;
 	HANDLE thread;
-	wStream* data_in;
 	void* InitHandle;
 	DWORD OpenHandle;
 };

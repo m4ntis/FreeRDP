@@ -1,10 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Clipboard Virtual Channel Extension
+ * Passthrough virtual channel
  *
- * Copyright 2013 Marc-Andre Moreau <marcandre.moreau@gmail.com>
- * Copyright 2015 Thincast Technologies GmbH
- * Copyright 2015 DI (FH) Martin Haimberger <martin.haimberger@thincast.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,43 +37,23 @@
  */
 UINT passthrough_server_read(PassthroughServerContext* context)
 {
+	UINT error = CHANNEL_RC_OK;
+
 	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
-	wStream* s;
-	size_t position;
-	DWORD BytesToRead;
+	wStream* s = passthrough->s;
 	DWORD BytesReturned;
-	UINT error;
-	DWORD status;
-	s = passthrough->s;
 
-	while (1)
+	Stream_SetPosition(s, 0);
+
+	if (!WTSVirtualChannelRead(passthrough->ChannelHandle, 0,
+	                           (PCHAR) Stream_Pointer(s), Stream_Capacity(s), &BytesReturned))
 	{
-		BytesReturned = 0;
-		BytesToRead = 4096;
-		status = WaitForSingleObject(passthrough->ChannelEvent, 0);
-
-		if (status == WAIT_FAILED)
-		{
-			error = GetLastError();
-			WLog_ERR(TAG, "WaitForSingleObject failed with error %"PRIu32"", error);
-			return error;
-		}
-
-		if (status == WAIT_TIMEOUT)
-			return 0; // channel ok
-
-		if (!WTSVirtualChannelRead(passthrough->ChannelHandle, 0,
-		                           (PCHAR) Stream_Pointer(s), BytesToRead, &BytesReturned))
-		{
-			WLog_ERR(TAG, "WTSVirtualChannelRead failed!");
-			return ERROR_INTERNAL_ERROR;
-		}
-
-		context->DataReceived(context, (BYTE*) Stream_Buffer(s), BytesReturned);
-		Stream_Seek(s, BytesReturned);
+		WLog_ERR(TAG, "WTSVirtualChannelRead failed!");
+		return GetLastError();
 	}
 
-	return 0; // channel ok
+	IFCALLRET(context->DataReceived, error, context, Stream_Buffer(s), BytesReturned);
+	return error;
 }
 
 static DWORD WINAPI passthrough_server_thread(LPVOID arg)
@@ -155,7 +133,7 @@ static UINT passthrough_server_open(PassthroughServerContext* context)
 	DWORD BytesReturned = 0;
 	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 	passthrough->ChannelHandle = WTSVirtualChannelOpen(passthrough->vcm,
-	                         WTS_CURRENT_SESSION, "passthrough");
+	                         WTS_CURRENT_SESSION, "bkey66");
 
 	if (!passthrough->ChannelHandle)
 	{
@@ -212,8 +190,8 @@ static UINT passthrough_server_close(PassthroughServerContext* context)
  */
 static UINT passthrough_server_start(PassthroughServerContext* context)
 {
-	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 	UINT error;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 
 	if (!passthrough->ChannelHandle)
 	{
@@ -241,6 +219,25 @@ static UINT passthrough_server_start(PassthroughServerContext* context)
 	return CHANNEL_RC_OK;
 }
 
+static UINT passthrough_server_send_data(PassthroughServerContext* context, const BYTE* data, UINT32 len)
+{
+	DWORD written;
+	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
+
+	if (!WTSVirtualChannelWrite(passthrough->ChannelHandle, (PCHAR) data, len, &written))
+	{
+		WLog_ERR(TAG, "WTSVirtualChannelWrite failed!");
+		return ERROR_INTERNAL_ERROR;
+	}
+
+	if (len != written)
+	{
+		WLog_WARN(TAG, "passthrough_server_send_data, len (%"PRIu32") != written (%"PRIu32")", len, written);
+		return ERROR_INTERNAL_ERROR;
+	}
+
+	return CHANNEL_RC_OK;
+}
 /**
  * Function description
  *
@@ -284,6 +281,7 @@ PassthroughServerContext* passthrough_server_context_new(HANDLE vcm)
 		context->Close = passthrough_server_close;
 		context->Start = passthrough_server_start;
 		context->Stop = passthrough_server_stop;
+		context->SendData = passthrough_server_send_data;
 		
 		passthrough = context->handle = (PassthroughServerPrivate*) calloc(1,
 		                            sizeof(PassthroughServerPrivate));

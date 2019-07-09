@@ -1,10 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Implementation
- * Display Update Virtual Channel Extension
+ * Passthrough virtual channel
  *
- * Copyright 2013 Marc-Andre Moreau <marcandre.moreau@gmail.com>
- * Copyright 2015 Thincast Technologies GmbH
- * Copyright 2015 DI (FH) Martin Haimberger <martin.haimberger@thincast.com>
+ * Copyright 2019 Kobi Mizrachi <kmizrachi18@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +27,7 @@
 typedef struct _passthrough_server_context PassthroughServerContext;
 
 typedef UINT (*cbPassthroughDataReceived)(PassthroughServerContext* context, const BYTE* data, UINT32 len);
-typedef UINT (*cbPassthroughSendData)(PassthroughServerContext* context, BYTE* data, UINT32 len);
+typedef UINT (*cbPassthroughSendData)(PassthroughServerContext* context, const BYTE* data, UINT32 len);
 typedef UINT (*cbPassthroughOpen)(PassthroughServerContext* context);
 typedef UINT (*cbPassthroughClose)(PassthroughServerContext* context);
 typedef UINT (*cbPassthroughStart)(PassthroughServerContext* context);

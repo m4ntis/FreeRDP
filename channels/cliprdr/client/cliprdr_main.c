@@ -963,6 +963,7 @@ static UINT cliprdr_client_file_contents_response(CliprdrClientContext* context,
 static UINT cliprdr_virtual_channel_event_data_received(cliprdrPlugin* cliprdr,
         void* pData, UINT32 dataLength, UINT32 totalLength, UINT32 dataFlags)
 {
+	printf("in cliprdr_virtual_channel_event_data_received\n");
 	wStream* data_in;
 
 	if ((dataFlags & CHANNEL_FLAG_SUSPEND) || (dataFlags & CHANNEL_FLAG_RESUME))
@@ -984,12 +985,12 @@ static UINT cliprdr_virtual_channel_event_data_received(cliprdrPlugin* cliprdr,
 		return CHANNEL_RC_NO_MEMORY;
 	}
 
-	if (!Stream_EnsureRemainingCapacity(data_in, dataLength))
-	{
-		Stream_Free(cliprdr->data_in, TRUE);
-		cliprdr->data_in = NULL;
-		return CHANNEL_RC_NO_MEMORY;
-	}
+	// if (!Stream_EnsureRemainingCapacity(data_in, dataLength))
+	// {
+	// 	Stream_Free(cliprdr->data_in, TRUE);
+	// 	cliprdr->data_in = NULL;
+	// 	return CHANNEL_RC_NO_MEMORY;
+	// }
 
 	Stream_Write(data_in, pData, dataLength);
 

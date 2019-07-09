@@ -1273,7 +1273,7 @@ UINT cliprdr_server_read(CliprdrServerContext* context)
 
 			Stream_SetPosition(s, 0);
 			/* check for trailing zero bytes */
-			status = WaitForSingleObject(cliprdr->ChannelEvent, 0);
+			status = WaitForSingleObject(cliprdr->ChannelEvent, 0); 
 
 			if (status == WAIT_FAILED)
 			{

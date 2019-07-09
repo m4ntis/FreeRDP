@@ -28,7 +28,7 @@
 #include "pf_context.h"
 
 BOOL pf_server_passthrough_init(pServerContext* ps);
-void pf_passthrough_pipeline_init(PassthroughClientContext* client, PassthroughServerContext* server,
+void pf_passthrough_pipepline_init(PassthroughClientContext* client, PassthroughServerContext* server,
                              proxyData* pdata);
 
 #endif /*FREERDP_SERVER_PROXY_PFPASSTHROUGH_H*/

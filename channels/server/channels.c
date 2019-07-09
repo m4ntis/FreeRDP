@@ -90,7 +90,7 @@ void freerdp_channels_dummy()
 	disp = disp_server_context_new(NULL);
 	disp_server_context_free(disp);
 	pass = passthrough_server_context_new(NULL);
-	passthrough_server_context_free(disp);
+	passthrough_server_context_free(pass);
 }
 
 /**

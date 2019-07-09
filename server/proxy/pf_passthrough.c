@@ -23,6 +23,7 @@
 #include <freerdp/server/passthrough.h>
 
 #include <winpr/synch.h>
+#include <winpr/print.h>
 
 #include "pf_passthrough.h"
 #include "pf_context.h"
@@ -46,18 +47,22 @@ BOOL pf_server_passthrough_init(pServerContext* ps)
 
 static UINT pf_passthrough_data_received_from_client(PassthroughServerContext* context, const BYTE* data, UINT32 len)
 {
+	WLog_DBG(TAG, "received data from client, len: %d", len);
 	proxyData* pdata = (proxyData*) context->custom;
 	PassthroughClientContext* client = (PassthroughClientContext*) pdata->pc->pass;
 	client->SendData(client, data, len);
-	return 0;
+	winpr_HexDump(TAG, WLOG_DEBUG, data, len);
+	return CHANNEL_RC_OK;
 }
 
 static UINT pf_passthrough_data_received_from_server(PassthroughClientContext* context, const BYTE* data, UINT32 len)
 {
+	WLog_DBG(TAG, "received data from server, len: %d", len);
+	winpr_HexDump(TAG, WLOG_DEBUG, data, len);
 	proxyData* pdata = (proxyData*) context->custom;
 	PassthroughServerContext* server = (PassthroughServerContext*) pdata->ps->pass;
 	server->SendData(server, data, len);
-	return 0;
+	return CHANNEL_RC_OK;
 }
 
 void pf_passthrough_pipeline_init(PassthroughClientContext* client, PassthroughServerContext* server,
