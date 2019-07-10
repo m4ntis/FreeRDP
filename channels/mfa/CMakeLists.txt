@@ -17,6 +17,13 @@
 
 define_channel("mfa")
 
+<<<<<<< HEAD
+=======
+if(WITH_CLIENT_CHANNELS)
+	#add_channel_client(${MODULE_PREFIX} ${CHANNEL_NAME})
+endif()
+
+>>>>>>> a9b82bd03... channels: mfa: add server-side MFA channel implementation
 if(WITH_SERVER_CHANNELS)
 	add_channel_server(${MODULE_PREFIX} ${CHANNEL_NAME})
 endif()
