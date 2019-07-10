@@ -19,6 +19,10 @@
  * limitations under the License.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #ifndef FREERDP_SERVER_PROXY_PFCONTEXT_H
 #define FREERDP_SERVER_PROXY_PFCONTEXT_H
 
@@ -29,10 +33,16 @@
 #include <freerdp/server/rdpgfx.h>
 #include <freerdp/client/disp.h>
 #include <freerdp/server/disp.h>
+#ifdef WITH_MFA
+#include <freerdp/server/mfa.h>
+#endif
 
 #include "pf_config.h"
 #include "pf_server.h"
 #include "pf_filters.h"
+#ifdef WITH_MFA
+#include "pf_mfa.h"
+#endif
 
 typedef struct proxy_data proxyData;
 
@@ -50,6 +60,9 @@ struct p_server_context
 
 	RdpgfxServerContext* gfx;
 	DispServerContext* disp;
+#ifdef WITH_MFA
+	MfaServerContext* mfa;
+#endif
 };
 typedef struct p_server_context pServerContext;
 
@@ -90,6 +103,10 @@ struct proxy_data
 
 	HANDLE abort_event;
 	HANDLE client_thread;
+
+#ifdef WITH_MFA
+	struct mfa_context* mfa;
+#endif
 
 	connectionInfo* info;
 	filters_list* filters;

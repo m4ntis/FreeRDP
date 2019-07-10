@@ -38,6 +38,9 @@
 #include "pf_rdpgfx.h"
 #include "pf_log.h"
 #include "pf_disp.h"
+#ifdef WITH_MFA
+#include "pf_mfa.h"
+#endif
 
 #define TAG PROXY_TAG("channels")
 
@@ -123,6 +126,14 @@ BOOL pf_server_channels_init(pServerContext* ps)
 			return FALSE;
 	}
 
+#ifdef WITH_MFA
+	if (!pf_mfa_init(context))
+	{
+		WLog_WARN(TAG, "pf_mfa_init failed!");
+		return FALSE;
+	}
+#endif
+
 	return TRUE;
 }
 
@@ -139,4 +150,12 @@ void pf_server_channels_free(pServerContext* ps)
 		disp_server_context_free(ps->disp);
 		ps->disp = NULL;
 	}
+
+#ifdef WITH_MFA
+	if (ps->mfa)
+	{
+		mfa_server_context_free(ps->mfa);
+		ps->mfa = NULL;
+	}
+#endif
 }
