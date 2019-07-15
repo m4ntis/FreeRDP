@@ -69,11 +69,16 @@ rdpContext* p_client_context_create(rdpSettings* clientSettings)
 	RDP_CLIENT_ENTRY_POINTS clientEntryPoints;
 	rdpContext* context;
 	rdpSettings* settings;
+	pClientContext* pc;
+
 	RdpClientEntry(&clientEntryPoints);
 	context = freerdp_client_context_new(&clientEntryPoints);
 
 	if (!context)
 		return NULL;
+
+	pc = (pClientContext*) context;
+	pc->after_first_try = FALSE;
 
 	settings = context->settings;
 	pf_common_copy_settings(settings, clientSettings);

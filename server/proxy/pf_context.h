@@ -68,6 +68,14 @@ struct p_client_context
 	RdpeiClientContext* rdpei;
 	RdpgfxClientContext* gfx;
 	DispClientContext* disp;
+
+	/* 
+	 * used to check if connection should be closed with the client
+	 * if the connection of proxy's client fails on the first try, it shouldn't
+	 * close the connection with the client, because it needs to first try to connection
+	 * without NLA (this process is called NLA fallback) 
+	 */
+	BOOL after_first_try;
 };
 typedef struct p_client_context pClientContext;
 

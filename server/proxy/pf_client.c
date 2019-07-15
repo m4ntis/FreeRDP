@@ -208,7 +208,12 @@ static void pf_client_post_disconnect(freerdp* instance)
 	PubSub_UnsubscribeErrorInfo(instance->context->pubSub, pf_OnErrorInfo);
 	gdi_free(instance);
 
-	SetEvent(pdata->connectionClosed);
+	if (context->after_first_try)
+	{
+		/* set connectionClosed only after first try (used for NLA fallback) */
+		SetEvent(pdata->connectionClosed);
+	}
+
 	/* It's important to avoid calling `freerdp_peer_context_free` and `freerdp_peer_free` here,
 	 * in order to avoid double-free. Those objects will be freed by the server when needed.
 	 */
@@ -222,15 +227,27 @@ static void pf_client_post_disconnect(freerdp* instance)
 static DWORD WINAPI pf_client_thread_proc(LPVOID arg)
 {
 	freerdp* instance = (freerdp*)arg;
+	pClientContext* pc = (pClientContext*) instance->context;
+	rdpSettings* settings = instance->settings;
 	DWORD nCount;
 	DWORD status;
 	HANDLE handles[64];
 
 	if (!freerdp_connect(instance))
 	{
-		WLog_ERR(TAG, "connection failure");
-		return 0;
+		WLog_INFO(TAG, "freerdp_connect() failed! trying to connect without NLA");
+		settings->NlaSecurity = FALSE;
+		settings->TlsSecurity = TRUE;
+		pc->after_first_try = TRUE;
+
+		if (!freerdp_connect(instance))
+		{
+			WLog_ERR(TAG, "connection failure");
+			return 0;
+		}
 	}
+
+	pc->after_first_try = TRUE;
 
 	while (!freerdp_shall_disconnect(instance))
 	{
