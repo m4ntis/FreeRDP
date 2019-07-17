@@ -63,14 +63,27 @@ static inline void pf_cliprdr_create_text_only_format_list(CLIPRDR_FORMAT_LIST* 
  * text is valid according to the configuration value of `MaxTextLength`.
  */
 static BOOL pf_cliprdr_is_copy_paste_valid(proxyConfig* config,
-        const CLIPRDR_FORMAT_DATA_RESPONSE* pdu)
+        const CLIPRDR_FORMAT_DATA_RESPONSE* pdu, UINT32 format)
 {
-	// todo: check size according to format (text/unicode/oem).
-	size_t copy_len = (pdu->dataLen / 2) - 1;
+	WLog_INFO(TAG, "pf_cliprdr_is_copy_paste_valid(): checking format %"PRIu32"", format);
+	size_t copy_len = config->MaxTextLength + 1;
+
+	switch (format)
+	{
+		case CF_UNICODETEXT:
+			copy_len = (pdu->dataLen / 2) - 1;
+			break;
+		case CF_TEXT:
+			copy_len = pdu->dataLen;
+			break;
+		default:
+			WLog_WARN(TAG, "received unknown format: %"PRIu32", format");
+			break;
+	}
 
 	if (copy_len > config->MaxTextLength)
 	{
-		WLog_WARN(TAG, "Text size is too large: %"PRIu32" (max %"PRIu32")", copy_len,
+		WLog_WARN(TAG, "text size is too large: %"PRIu32" (max %"PRIu32")", copy_len,
 		          config->MaxTextLength);
 		return FALSE;
 	}
@@ -197,7 +210,7 @@ static UINT pf_cliprdr_ClientFormatDataResponse(CliprdrServerContext* context,
 
 	if (pf_cliprdr_if_text_format(client->lastRequestedFormatId))
 	{
-		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse, client->lastRequestedFormatId))
 		{
 			CLIPRDR_FORMAT_DATA_RESPONSE resp;
 			pf_cliprdr_create_failed_format_data_response(&resp);
@@ -327,7 +340,7 @@ static UINT pf_cliprdr_ServerFormatDataResponse(CliprdrClientContext* context,
 
 	if (pf_cliprdr_if_text_format(server->lastRequestedFormatId))
 	{
-		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse))
+		if (!pf_cliprdr_is_copy_paste_valid(pdata->config, formatDataResponse, server->lastRequestedFormatId))
 		{
 			CLIPRDR_FORMAT_DATA_RESPONSE resp;
 			pf_cliprdr_create_failed_format_data_response(&resp);
