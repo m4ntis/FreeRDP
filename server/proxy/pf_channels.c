@@ -120,33 +120,44 @@ void pf_OnChannelDisconnectedEventHandler(void* context,
 
 UINT pf_channels_init(pServerContext* ps)
 {
+	rdpContext* context = (rdpContext*) ps;
 	WLog_INFO(TAG, "pf_channels_init called");
-	rdpSettings* sSettings;
 
-	sSettings = ((rdpContext*)ps)->settings;
-
-	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
+	if (context->settings->SupportGraphicsPipeline)
 	{
-		pf_rdpgfx_init(ps);
+		if (!pf_server_rdpgfx_init(ps))
+		{
+			WLog_ERR(TAG, "failed to initialize clipboard channel");
+			return FALSE;
+		}
 	}
 
 	if (WTSVirtualChannelManagerIsChannelJoined(ps->vcm, CLIPRDR_SVC_CHANNEL_NAME))
 	{
-		/* enable server to redirect clipboard */
-		sSettings->RedirectClipboard = TRUE;
-		pf_cliprdr_init(ps);
+		context->settings->RedirectClipboard = TRUE;
+		if (!pf_server_cliprdr_init(ps))
+		{
+			WLog_ERR(TAG, "failed to initialize clipboard channel");
+			return FALSE;
+		}
 	}
 
-	return CHANNEL_RC_OK;
+	if (!pf_server_disp_init(ps))
+	{
+		return FALSE;
+	}
+
+	return TRUE;
 }
 
 void pf_channels_free(pServerContext* ps)
 {
+	if (ps->cliprdr)
+		pf_server_cliprdr_free(ps);
 
-	if (((rdpContext*) ps)->settings->SupportGraphicsPipeline)
-	{
-		pf_rdpgfx_free(ps);
-	}
+	if (ps->gfx)
+		pf_server_rdpgfx_free(ps);
 
-	pf_cliprdr_free(ps);
+	if (ps->disp)
+		pf_server_disp_free(ps);
 }

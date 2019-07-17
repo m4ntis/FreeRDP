@@ -28,8 +28,8 @@
 #include "pf_context.h"
 
 
-BOOL pf_cliprdr_init(pServerContext* ps);
-void pf_cliprdr_free(pServerContext* ps);
+BOOL pf_server_cliprdr_init(pServerContext* ps);
+void pf_server_cliprdr_free(pServerContext* ps);
 void pf_cliprdr_channel_register(CliprdrClientContext* cliprdr_client,
                                  CliprdrServerContext* cliprdr_server,
                                  proxyData* pdata);

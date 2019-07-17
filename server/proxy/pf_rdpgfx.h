@@ -27,8 +27,8 @@
 
 #include "pf_context.h"
 
-BOOL pf_rdpgfx_init(pServerContext* ps);
-void pf_rdpgfx_free(pServerContext *ps);
+BOOL pf_server_rdpgfx_init(pServerContext* ps);
+void pf_server_rdpgfx_free(pServerContext *ps);
 void pf_rdpgfx_pipeline_init(RdpgfxClientContext* gfx, RdpgfxServerContext* server,
                              proxyData* pdata);
 

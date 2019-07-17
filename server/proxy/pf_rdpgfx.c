@@ -30,7 +30,7 @@
 
 #define TAG PROXY_TAG("gfx")
 
-BOOL pf_rdpgfx_init(pServerContext* ps)
+BOOL pf_server_rdpgfx_init(pServerContext* ps)
 {
 	RdpgfxServerContext* gfx;
 	gfx = ps->gfx = rdpgfx_server_context_new(ps->vcm);
@@ -44,7 +44,7 @@ BOOL pf_rdpgfx_init(pServerContext* ps)
 	return TRUE;
 }
 
-void pf_rdpgfx_free(pServerContext *ps)
+void pf_server_rdpgfx_free(pServerContext *ps)
 {
 	rdpgfx_server_context_free(ps->gfx);
 	ps->gfx = NULL;

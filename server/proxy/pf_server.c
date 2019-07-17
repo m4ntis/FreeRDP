@@ -161,11 +161,16 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	ps = (pServerContext*)client->context;
 	pdata = ps->pdata;
 
+	if (!pf_channels_init(ps))
+	{
+		return FALSE;
+	}
+
 	pc = p_client_context_create(client->settings);
 	if (pc == NULL)
 	{
 		WLog_ERR(TAG, "pf_server_post_connect(): p_client_context_create failed!");
-		return FALSE;
+		goto out_free_client_context;
 	}
 
 	/* keep both sides of the connection in pdata */
@@ -175,33 +180,23 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	if (!pf_server_get_target_info(client->context, pc->settings, pdata->config))
 	{
 		WLog_ERR(TAG, "pf_server_post_connect(): pf_server_get_target_info failed!");
-		return FALSE;
+		goto out_free_client_context;
 	}
 
 	WLog_INFO(TAG, "pf_server_post_connect(): target == %s:%"PRIu16"", pc->settings->ServerHostname,
 	      pc->settings->ServerPort);
 
-	pf_server_rdpgfx_init(ps);
-	pf_server_disp_init(ps);
-	pf_channels_init(ps);
-
-	pc = (pClientContext*) p_client_context_create(client->settings, host, port);
-
-	connectionClosedEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-	/* keep both sides of the connection in pdata */
-	pc->pdata = ps->pdata;
-	pdata->pc = (pClientContext*) pc;
-	pdata->ps = ps;
-	pdata->connectionClosed = connectionClosedEvent;
-	
 	/* Start a proxy's client in it's own thread */
 	if (!(ps->thread = CreateThread(NULL, 0, pf_client_start, pc, 0, NULL)))
 	{
 		WLog_ERR(TAG, "CreateThread failed!");
-		return FALSE;
+		goto out_free_client_context;
 	}
 
 	return TRUE;
+out_free_client_context:
+	freerdp_client_context_free(pc);
+	return FALSE;
 }
 
 static BOOL pf_server_activate(freerdp_peer* client)
@@ -258,8 +253,8 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	pdata->config = client->ContextExtra;
 	config = pdata->config;
 	client->settings->UseMultimon = TRUE;
+	client->settings->RedirectClipboard = FALSE;
 	client->settings->SupportGraphicsPipeline = config->GFX;
-	client->settings->RedirectClipboard = FALSE; /* disable on init, check later on `pf_channels_init` */
 	client->settings->SupportDynamicChannels = TRUE;
 	client->settings->CertificateFile = _strdup("server.crt");
 	client->settings->PrivateKeyFile = _strdup("server.key");
@@ -367,20 +362,6 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 fail:
 	pf_channels_free(ps);
 
-	if (ps->disp)
-	{
-		if (ps->dispOpened)
-		{
-			WLog_DBG(TAG, "Closing RDPEDISP server");
-			(void)ps->disp->Close(ps->disp);
-		}
-
-		disp_server_context_free(ps->disp);
-	}
-
-	if (ps->gfx)
-		rdpgfx_server_context_free(ps->gfx);
-		
 	if (client->connected && !pf_common_connection_aborted_by_peer(pdata))
 	{
 		pf_server_handle_client_disconnection(client);

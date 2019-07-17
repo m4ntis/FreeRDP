@@ -19,6 +19,20 @@ BOOL pf_server_disp_init(pServerContext* ps)
 	return TRUE;
 }
 
+void pf_server_disp_free(pServerContext* ps)
+{
+	if (ps->disp == NULL)
+		return;
+
+	if (ps->dispOpened)
+	{
+			WLog_DBG(TAG, "Closing RDPEDISP server");
+			(void)ps->disp->Close(ps->disp);
+	}
+
+	disp_server_context_free(ps->disp);
+}
+
 static UINT pf_disp_monitor_layout(DispServerContext* context,
                                    const DISPLAY_CONTROL_MONITOR_LAYOUT_PDU* pdu)
 {

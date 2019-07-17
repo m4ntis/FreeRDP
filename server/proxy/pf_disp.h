@@ -28,6 +28,7 @@
 #include "pf_context.h"
 
 BOOL pf_server_disp_init(pServerContext* ps);
+void pf_server_disp_free(pServerContext* ps);
 void pf_disp_register_callbacks(DispClientContext* client, DispServerContext* server,
                            proxyData* pdata);
 
