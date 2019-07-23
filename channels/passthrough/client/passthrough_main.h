@@ -32,7 +32,8 @@ struct passthrough_plugin
 {
 	CHANNEL_DEF channelDef;
 	CHANNEL_ENTRY_POINTS_FREERDP_EX channelEntryPoints;
-
+	char* real_channel_name;
+	
 	PassthroughClientContext* context;
 
 	wLog* log;

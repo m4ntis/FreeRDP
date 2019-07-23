@@ -54,7 +54,7 @@ struct _passthrough_server_context
 extern "C" {
 #endif
 
-FREERDP_API PassthroughServerContext* passthrough_server_context_new(HANDLE vcm);
+FREERDP_API PassthroughServerContext* passthrough_server_context_new(HANDLE vcm, char* name);
 FREERDP_API void passthrough_server_context_free(PassthroughServerContext* context);
 
 #ifdef __cplusplus

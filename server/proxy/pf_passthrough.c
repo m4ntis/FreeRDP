@@ -34,7 +34,7 @@
 BOOL pf_server_passthrough_init(pServerContext* ps)
 {
 	PassthroughServerContext* pass;
-	pass = ps->pass = passthrough_server_context_new(ps->vcm);
+	pass = ps->pass = passthrough_server_context_new(ps->vcm, "bkey66");
 
 	if (!pass)
 	{
@@ -47,7 +47,8 @@ BOOL pf_server_passthrough_init(pServerContext* ps)
 
 static UINT pf_passthrough_data_received_from_client(PassthroughServerContext* context, const BYTE* data, UINT32 len)
 {
-	WLog_DBG(TAG, "received data from client, len: %d", len);
+	WLog_INFO(TAG, "received data from client, len: %d", len);
+	winpr_HexDump(TAG, WLOG_INFO, data, len);
 	proxyData* pdata = (proxyData*) context->custom;
 	PassthroughClientContext* client = (PassthroughClientContext*) pdata->pc->pass;
 	client->SendData(client, data, len);
@@ -57,8 +58,8 @@ static UINT pf_passthrough_data_received_from_client(PassthroughServerContext* c
 
 static UINT pf_passthrough_data_received_from_server(PassthroughClientContext* context, const BYTE* data, UINT32 len)
 {
-	WLog_DBG(TAG, "received data from server, len: %d", len);
-	winpr_HexDump(TAG, WLOG_DEBUG, data, len);
+	WLog_INFO(TAG, "received data from server, len: %d", len);
+	winpr_HexDump(TAG, WLOG_INFO, data, len);
 	proxyData* pdata = (proxyData*) context->custom;
 	PassthroughServerContext* server = (PassthroughServerContext*) pdata->ps->pass;
 	server->SendData(server, data, len);

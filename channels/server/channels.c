@@ -89,7 +89,7 @@ void freerdp_channels_dummy()
 	rdpgfx_server_context_free(rdpgfx);
 	disp = disp_server_context_new(NULL);
 	disp_server_context_free(disp);
-	pass = passthrough_server_context_new(NULL);
+	pass = passthrough_server_context_new(NULL, NULL);
 	passthrough_server_context_free(pass);
 }
 

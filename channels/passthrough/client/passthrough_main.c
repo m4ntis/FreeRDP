@@ -188,6 +188,7 @@ static UINT passthrough_virtual_channel_event_disconnected(passthroughPlugin* pa
 static UINT passthrough_virtual_channel_event_terminated(passthroughPlugin* passthrough)
 {
 	passthrough->InitHandle = 0;
+	free(passthrough->real_channel_name);
 	free(passthrough->context);
 	free(passthrough);
 	return CHANNEL_RC_OK;
@@ -238,6 +239,7 @@ static VOID VCAPITYPE passthrough_virtual_channel_init_event_ex(LPVOID lpUserPar
 
 BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID pInitHandle)
 {
+	ADDIN_ARGV* args;
 	UINT rc;
 	passthroughPlugin* passthrough;
 	PassthroughClientContext* context = NULL;
@@ -254,8 +256,16 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	passthrough->channelDef.options =
 	    CHANNEL_OPTION_INITIALIZED;
 
-	sprintf_s(passthrough->channelDef.name, ARRAYSIZE(passthrough->channelDef.name), "Bkey66");
 	pEntryPointsEx = (CHANNEL_ENTRY_POINTS_FREERDP_EX*) pEntryPoints;
+	printf("before args parsing\n");
+
+	args = (ADDIN_ARGV*) pEntryPointsEx->pExtendedData;
+
+	printf("got channel name as %s\n", args->argv[1]);
+	passthrough->real_channel_name = _strdup(args->argv[1]);
+
+	sprintf_s(passthrough->channelDef.name, ARRAYSIZE(passthrough->channelDef.name), (char*) args->argv[1]);
+	printf("client starting as %s\n", passthrough->channelDef.name);
 
 	if ((pEntryPointsEx->cbSize >= sizeof(CHANNEL_ENTRY_POINTS_FREERDP_EX)) &&
 	    (pEntryPointsEx->MagicNumber == FREERDP_CHANNEL_MAGIC_NUMBER))
@@ -291,6 +301,7 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	{
 		WLog_ERR(TAG, "pVirtualChannelInit failed with %s [%08"PRIX32"]",
 		         WTSErrorToString(rc), rc);
+		free(passthrough->real_channel_name);
 		free(passthrough->context);
 		free(passthrough);
 		return FALSE;

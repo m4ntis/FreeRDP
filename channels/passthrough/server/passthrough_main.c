@@ -133,7 +133,7 @@ static UINT passthrough_server_open(PassthroughServerContext* context)
 	DWORD BytesReturned = 0;
 	PassthroughServerPrivate* passthrough = (PassthroughServerPrivate*) context->handle;
 	passthrough->ChannelHandle = WTSVirtualChannelOpen(passthrough->vcm,
-	                         WTS_CURRENT_SESSION, "bkey66");
+	                         WTS_CURRENT_SESSION, passthrough->channel_name);
 
 	if (!passthrough->ChannelHandle)
 	{
@@ -269,7 +269,7 @@ static UINT passthrough_server_stop(PassthroughServerContext* context)
 	return error;
 }
 
-PassthroughServerContext* passthrough_server_context_new(HANDLE vcm)
+PassthroughServerContext* passthrough_server_context_new(HANDLE vcm, char* channel_name)
 {
 	PassthroughServerContext* context;
 	PassthroughServerPrivate* passthrough;
@@ -298,6 +298,9 @@ PassthroughServerContext* passthrough_server_context_new(HANDLE vcm)
 				free(context);
 				return NULL;
 			}
+			
+			passthrough->channel_name = _strdup(channel_name);
+			// TODO: free
 		}
 		else
 		{

@@ -231,6 +231,7 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	/* keep configuration in proxyData */
 	pdata->config = client->ContextExtra;
 	config = pdata->config;
+	client->settings->AudioPlayback = TRUE;
 	client->settings->UseMultimon = TRUE;
 	client->settings->SupportGraphicsPipeline = config->GFX;
 	client->settings->SupportDynamicChannels = TRUE;

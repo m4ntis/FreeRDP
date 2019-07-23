@@ -40,6 +40,7 @@ struct _passthrough_server_private
 	HANDLE ChannelEvent;
 
 	wStream* s;
+	char* channel_name;
 };
 
 #endif /* FREERDP_CHANNEL_PASSTHROUGH_SERVER_MAIN_H */

@@ -52,6 +52,14 @@
 
 #define TAG PROXY_TAG("client")
 
+static BOOL pf_client_load_passthrough_channel(rdpContext* context, char* channel_name)
+{
+	char* params[2];
+	params[0] = "plex";
+	params[1] = channel_name;
+
+	return freerdp_client_add_static_channel(context->settings, 2, (char**) params);
+}
 /**
  * Re-negotiate with original client after negotiation between the proxy
  * and the target has finished.
@@ -116,16 +124,16 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 	 * settings.
 	 */
 	WLog_INFO(TAG, "Loading addins");
+
+	if (!pf_client_load_passthrough_channel(instance->context, "Bkey66"))
+		return FALSE;
+
 	if (!freerdp_client_load_addins(instance->context->channels,
 	                                instance->settings))
 	{
 		WLog_ERR(TAG, "Failed to load addins");
 		return FALSE;
 	}
-
-	if (!freerdp_client_load_static_channel_addin(instance->context->channels, instance->settings, "plex",
-		        settings))
-		return FALSE;
 
 	return TRUE;
 }

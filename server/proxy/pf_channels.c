@@ -68,9 +68,9 @@ void pf_OnChannelConnectedEventHandler(void* data,
 	}
 	else if (strcmp(e->name, "Bkey66") == 0)
 	{
-		if (!ps->pass->Open(ps->pass))
+		if (ps->pass->Start(ps->pass) != CHANNEL_RC_OK)
 		{
-			WLog_ERR(TAG, "failed to open GFX server");
+			WLog_ERR(TAG, "failed to open passthrough server");
 			return;
 		}
 
