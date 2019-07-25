@@ -640,6 +640,7 @@ static void rdpsnd_register_device_plugin(rdpsndPlugin* rdpsnd,
 
 	rdpsnd->device = device;
 	device->rdpsnd = rdpsnd;
+	device->rdpcontext = rdpsnd->rdpcontext;
 }
 
 /**

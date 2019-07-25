@@ -58,3 +58,4 @@ if(WITH_OPENSLES)
 endif()
 
 add_channel_client_subsystem(${MODULE_PREFIX} ${CHANNEL_NAME} "fake" "")
+add_channel_client_subsystem(${MODULE_PREFIX} ${CHANNEL_NAME} "proxy" "")

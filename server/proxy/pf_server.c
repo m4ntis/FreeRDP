@@ -50,6 +50,7 @@
 #include "pf_update.h"
 #include "pf_rdpgfx.h"
 #include "pf_disp.h"
+#include "pf_rdpsnd.h"
 
 #define TAG PROXY_TAG("server")
 
@@ -180,6 +181,7 @@ static BOOL pf_server_post_connect(freerdp_peer* client)
 	      pc->settings->ServerPort);
 
 	pf_server_rdpgfx_init(ps);
+	pf_server_rdpsnd_init(ps);
 	pf_server_disp_init(ps);
 
 	/* Start a proxy's client in it's own thread */
@@ -246,6 +248,8 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 	pdata->config = client->ContextExtra;
 	config = pdata->config;
 	client->settings->UseMultimon = TRUE;
+	client->settings->AudioPlayback = TRUE;
+	client->settings->DeviceRedirection = TRUE;
 	client->settings->SupportGraphicsPipeline = config->GFX;
 	client->settings->SupportDynamicChannels = TRUE;
 	client->settings->CertificateFile = _strdup("server.crt");

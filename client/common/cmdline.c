@@ -3180,7 +3180,7 @@ BOOL freerdp_client_load_addins(rdpChannels* channels, rdpSettings* settings)
 		{
 			char* params[2];
 			params[0] = "rdpsnd";
-			params[1] = "sys:fake";
+			params[1] = "sys:proxy";
 
 			if (!freerdp_client_add_static_channel(settings, 2, (char**) params))
 				return FALSE;

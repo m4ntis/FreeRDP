@@ -63,7 +63,6 @@ void pf_common_copy_settings(rdpSettings* dst, rdpSettings* src)
 	dst->MouseAttached = src->MouseAttached;
 	dst->MouseHasWheel = src->MouseHasWheel;
 	dst->RemoteConsoleAudio = src->RemoteConsoleAudio;
-	dst->AudioPlayback = src->AudioPlayback;
 	dst->AudioCapture = src->AudioCapture;
 	dst->VideoDisable = src->VideoDisable;
 	dst->PasswordIsSmartcardPin = src->PasswordIsSmartcardPin;

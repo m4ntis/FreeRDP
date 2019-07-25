@@ -51,6 +51,8 @@ struct rdpsnd_device_plugin
 	pcStart Start;
 	pcClose Close;
 	pcFree Free;
+
+	rdpContext* rdpcontext;
 };
 
 #define RDPSND_DEVICE_EXPORT_FUNC_NAME "freerdp_rdpsnd_client_subsystem_entry"

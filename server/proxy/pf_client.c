@@ -118,6 +118,8 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 	 */
 	WLog_INFO(TAG, "Loading addins");
 
+	settings->DeviceRedirection = TRUE;
+	settings->AudioPlayback = TRUE;
 	if (!freerdp_client_load_addins(instance->context->channels,
 	                                instance->settings))
 	{

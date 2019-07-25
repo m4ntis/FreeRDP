@@ -19,16 +19,16 @@
  * limitations under the License.
  */
 
-#ifndef FREERDP_SERVER_PROXY_RDPEDISP_H
-#define FREERDP_SERVER_PROXY_RDPEDISP_H
+#ifndef FREERDP_SERVER_PROXY_RDPSND_H
+#define FREERDP_SERVER_PROXY_RDPSND_H
 
-#include <freerdp/client/rdpsnd.h>
-#include <freerdp/server/rdpsnd.h>
+#include <freerdp/client/disp.h>
+#include <freerdp/server/disp.h>
 
 #include "pf_context.h"
 
-BOOL pf_server_disp_init(pServerContext* ps);
-void pf_disp_register_callbacks(DispClientContext* client, DispServerContext* server,
+BOOL pf_server_rdpsnd_init(pServerContext* ps);
+void pf_rdpsnd_register_callbacks(DispClientContext* client, DispServerContext* server,
                            proxyData* pdata);
 
-#endif /*FREERDP_SERVER_PROXY_RDPEDISP_H*/
+#endif /*FREERDP_SERVER_PROXY_RDPSND_H*/

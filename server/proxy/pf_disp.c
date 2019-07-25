@@ -1,4 +1,4 @@
-#include <freerdp/server/disp.h>
+#include <freerdp/server/rdpsnd.h>
 
 #include "pf_disp.h"
 #include "pf_log.h"
