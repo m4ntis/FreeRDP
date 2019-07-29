@@ -28,7 +28,6 @@
 #include "pf_context.h"
 
 BOOL pf_server_rdpsnd_init(pServerContext* ps);
-void pf_rdpsnd_register_callbacks(DispClientContext* client, DispServerContext* server,
-                           proxyData* pdata);
+void pf_server_rdpsnd_free(pServerContext* ps);
 
 #endif /*FREERDP_SERVER_PROXY_RDPSND_H*/

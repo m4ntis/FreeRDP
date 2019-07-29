@@ -120,6 +120,18 @@ static BOOL pf_client_pre_connect(freerdp* instance)
 
 	settings->DeviceRedirection = TRUE;
 	settings->AudioPlayback = TRUE;
+
+	/* load rdpsnd client with sys:proxy as subsystem */
+	if (!freerdp_static_channel_collection_find(settings, "rdpsnd"))
+	{
+		char* params[2];
+		params[0] = "rdpsnd";
+		params[1] = "sys:proxy";
+
+		if (!freerdp_client_add_static_channel(settings, 2, (char**) params))
+			return FALSE;
+	}
+
 	if (!freerdp_client_load_addins(instance->context->channels,
 	                                instance->settings))
 	{

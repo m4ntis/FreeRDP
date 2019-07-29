@@ -21,6 +21,7 @@
 #ifndef FREERDP_CHANNEL_RDPSND_CLIENT_RDPSND_H
 #define FREERDP_CHANNEL_RDPSND_CLIENT_RDPSND_H
 
+#include <freerdp/freerdp.h>
 #include <freerdp/channels/rdpsnd.h>
 
 /**

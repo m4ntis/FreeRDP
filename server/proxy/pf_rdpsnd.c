@@ -31,11 +31,10 @@ static void rdpsnd_activated(RdpsndServerContext* context)
 
 	if (agreed_format == NULL)
 	{
-		WLog_ERR(TAG, "Could not agree on a audio format with the server\n");
+		WLog_ERR(TAG, "rdpsnd_activated(): Could not agree on a audio format with the server");
 		return;
 	}
 
-	printf("format %"PRIu16"\n", context->client_formats[i].wFormatTag);
 	context->SelectFormat(context, i);
 }
 
@@ -61,29 +60,3 @@ BOOL pf_server_rdpsnd_init(pServerContext* ps)
 	rdpsnd->Initialize(rdpsnd, TRUE);
 	return TRUE;
 }
-
-
-
-
-// void pf_server_rdpsnd_init(rdpShadowClient* client)
-// {
-// 	if (client->rdpsnd)
-// 	{
-// 		client->rdpsnd->Stop(client->rdpsnd);
-// 		rdpsnd_server_context_free(client->rdpsnd);
-// 		client->rdpsnd = NULL;
-// 	}
-// }
-
-
-// void pf_rdpsnd_register_callbacks(DispClientContext* client, DispServerContext* server,
-//                            proxyData* pdata)
-// {
-// 	client->custom = (void*) pdata;
-// 	server->custom = (void*) pdata;
-
-// 	 client receives from server, forward using disp server to original client 
-// 	client->DisplayControlCaps = pf_disp_on_caps_control;
-// 	/* server receives from client, forward to target server using disp client */
-// 	server->DispMonitorLayout = pf_disp_monitor_layout;
-// }

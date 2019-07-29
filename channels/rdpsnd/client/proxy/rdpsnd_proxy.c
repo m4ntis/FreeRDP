@@ -31,6 +31,7 @@
 #include <winpr/cmdline.h>
 #include <winpr/sysinfo.h>
 #include <freerdp/types.h>
+#include <freerdp/server/rdpsnd.h>
 
 #include "rdpsnd_main.h"
 #include "../../server/proxy/pf_context.h"
@@ -40,31 +41,26 @@ typedef struct rdpsnd_proxy_plugin rdpsndProxyPlugin;
 struct rdpsnd_proxy_plugin
 {
 	rdpsndDevicePlugin device;
-	pServerContext* rdpsnd_server;
+	RdpsndServerContext* rdpsnd_server;
 };
 
 static BOOL rdpsnd_proxy_open(rdpsndDevicePlugin* device, const AUDIO_FORMAT* format, UINT32 latency)
 {
 	rdpsndProxyPlugin* proxy = (rdpsndProxyPlugin*)device;
-	proxy->rdpsnd_server->rdpsnd->latency = latency;
-
-	printf("rdpsnd_proxy_open\n");
+	/* update proxy's rdpsnd server latency */
+	proxy->rdpsnd_server->latency = latency;
 	return TRUE;
 }
 
 static void rdpsnd_proxy_close(rdpsndDevicePlugin* device)
 {
-	printf("rdpsnd_proxy_close\n");
-
+	/* do nothing */
 }
 
 static BOOL rdpsnd_proxy_set_volume(rdpsndDevicePlugin* device, UINT32 value)
 {
-	printf("rdpsnd_proxy_set_volume\n");
 	rdpsndProxyPlugin* proxy = (rdpsndProxyPlugin*)device;
-
-	proxy->rdpsnd_server->rdpsnd->SetVolume(proxy->rdpsnd_server->rdpsnd, value, value);
-
+	proxy->rdpsnd_server->SetVolume(proxy->rdpsnd_server, value, value);
 	return TRUE;
 }
 
@@ -80,39 +76,34 @@ static void rdpsnd_proxy_free(rdpsndDevicePlugin* device)
 
 static BOOL rdpsnd_proxy_format_supported(rdpsndDevicePlugin* device, const AUDIO_FORMAT* format)
 {
-	printf("rdpsnd_proxy_format_supported\n");
-	if (WAVE_FORMAT_PCM == format->wFormatTag)
+	rdpsndProxyPlugin* proxy = (rdpsndProxyPlugin*)device;
+
+	/* use the same format that proxy's server used */
+	if (proxy->rdpsnd_server->selected_client_format == format->wFormatTag)
 		return TRUE;
 
-	printf("shit\n");
 	return FALSE;
 }
 
 static BOOL rdpsnd_proxy_set_format(rdpsndDevicePlugin* device, const AUDIO_FORMAT* format,
                                    int latency)
 {
-	printf("rdpsnd_proxy_set_format\n");
-
 	rdpsndProxyPlugin* proxy = (rdpsndProxyPlugin*)device;
-
-	proxy->rdpsnd_server->rdpsnd->SelectFormat(proxy->rdpsnd_server->rdpsnd, format->wFormatTag);
+	proxy->rdpsnd_server->SelectFormat(proxy->rdpsnd_server, format->wFormatTag);
 	return TRUE;
 }
 
 static UINT rdpsnd_proxy_play(rdpsndDevicePlugin* device, const BYTE* data, size_t size)
 {
-	printf("rdpsnd_proxy_play\n");
 	rdpsndProxyPlugin* proxy = (rdpsndProxyPlugin*)device;
-
 	UINT64 start = GetTickCount();
-	proxy->rdpsnd_server->rdpsnd->SendSamples(proxy->rdpsnd_server->rdpsnd, data, size / 4, start);
+	proxy->rdpsnd_server->SendSamples(proxy->rdpsnd_server, data, size / 4, start);
 	return GetTickCount() - start;
 }
 
 static void rdpsnd_proxy_start(rdpsndDevicePlugin* device)
 {
-	printf("rdpsnd_proxy_start\n");
-
+	/* do nothing */
 }
 
 /**
@@ -153,11 +144,7 @@ UINT freerdp_rdpsnd_client_subsystem_entry(PFREERDP_RDPSND_DEVICE_ENTRY_POINTS p
 	args = pEntryPoints->args;
 
 	pEntryPoints->pRegisterRdpsndDevice(pEntryPoints->rdpsnd, &proxy->device);
-	pClientContext* pc = proxy->device.rdpcontext;
-	proxy->rdpsnd_server = pc->pdata->ps;
-	printf("updated rdpsnd_server\n");
-	return ret;
-error:
-	rdpsnd_proxy_free(&proxy->device);
+	pClientContext* pc = (pClientContext*) proxy->device.rdpcontext;
+	proxy->rdpsnd_server = pc->pdata->ps->rdpsnd;
 	return ret;
 }
