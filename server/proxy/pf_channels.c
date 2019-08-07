@@ -117,6 +117,13 @@ void pf_OnChannelDisconnectedEventHandler(void* data,
 
 		pc->disp = NULL;
 	}
+	else if (strcmp(e->name, "Bkey66") == 0)
+	{
+		if (ps->pass->Stop(ps->pass) != CHANNEL_RC_OK)
+			WLog_ERR(TAG, "failed to close pass server");
+
+		pc->pass = NULL;
+	}
 }
 
 BOOL pf_server_channels_init(pServerContext* ps)
@@ -154,5 +161,11 @@ void pf_server_channels_free(pServerContext* ps)
 	{
 		disp_server_context_free(ps->disp);
 		ps->disp = NULL;
+	}
+
+	if (ps->pass)
+	{
+		passthrough_server_context_free(ps->pass);
+		ps->pass = NULL;
 	}
 }

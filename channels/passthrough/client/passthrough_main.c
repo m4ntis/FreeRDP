@@ -103,6 +103,7 @@ static VOID VCAPITYPE passthrough_virtual_channel_open_event_ex(LPVOID lpUserPar
 {
 	UINT error = CHANNEL_RC_OK;
 	passthroughPlugin* passthrough = (passthroughPlugin*) lpUserParam;
+	PassthroughClientContext* context = passthrough_get_client_interface(passthrough);
 
 	if (!passthrough || (passthrough->OpenHandle != openHandle))
 	{
@@ -113,6 +114,7 @@ static VOID VCAPITYPE passthrough_virtual_channel_open_event_ex(LPVOID lpUserPar
 	switch (event)
 	{
 		case CHANNEL_EVENT_DATA_RECEIVED:
+			ResetEvent(context->write_complete);
 			if ((error = passthrough_virtual_channel_event_data_received(passthrough, pData, dataLength,
 			             totalLength, dataFlags)))
 				WLog_ERR(TAG, "failed with error %"PRIu32"", error);
@@ -120,6 +122,7 @@ static VOID VCAPITYPE passthrough_virtual_channel_open_event_ex(LPVOID lpUserPar
 			break;
 
 		case CHANNEL_EVENT_WRITE_COMPLETE:
+			SetEvent(context->write_complete);
 			break;
 
 		case CHANNEL_EVENT_USER:
@@ -188,7 +191,6 @@ static UINT passthrough_virtual_channel_event_disconnected(passthroughPlugin* pa
 static UINT passthrough_virtual_channel_event_terminated(passthroughPlugin* passthrough)
 {
 	passthrough->InitHandle = 0;
-	free(passthrough->real_channel_name);
 	free(passthrough->context);
 	free(passthrough);
 	return CHANNEL_RC_OK;
@@ -246,7 +248,6 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	CHANNEL_ENTRY_POINTS_FREERDP_EX* pEntryPointsEx;
 	passthrough = (passthroughPlugin*) calloc(1, sizeof(passthroughPlugin));
 
-
 	if (!passthrough)
 	{
 		WLog_ERR(TAG, "calloc failed!");
@@ -257,15 +258,9 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	    CHANNEL_OPTION_INITIALIZED;
 
 	pEntryPointsEx = (CHANNEL_ENTRY_POINTS_FREERDP_EX*) pEntryPoints;
-	printf("before args parsing\n");
-
 	args = (ADDIN_ARGV*) pEntryPointsEx->pExtendedData;
 
-	printf("got channel name as %s\n", args->argv[1]);
-	passthrough->real_channel_name = _strdup(args->argv[1]);
-
 	sprintf_s(passthrough->channelDef.name, ARRAYSIZE(passthrough->channelDef.name), (char*) args->argv[1]);
-	printf("client starting as %s\n", passthrough->channelDef.name);
 
 	if ((pEntryPointsEx->cbSize >= sizeof(CHANNEL_ENTRY_POINTS_FREERDP_EX)) &&
 	    (pEntryPointsEx->MagicNumber == FREERDP_CHANNEL_MAGIC_NUMBER))
@@ -274,9 +269,14 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 
 		if (!context)
 		{
-			free(passthrough);
 			WLog_ERR(TAG, "calloc failed!");
-			return FALSE;
+			goto error;
+		}
+
+		if (!(context->write_complete = CreateEvent(NULL, TRUE, FALSE, NULL)))
+		{
+			WLog_ERR(TAG, "CreateEvent failed!");
+			goto error;
 		}
 
 		context->handle = (void*) passthrough;
@@ -301,12 +301,17 @@ BOOL VCAPITYPE VirtualChannelEntryEx(PCHANNEL_ENTRY_POINTS pEntryPoints, PVOID p
 	{
 		WLog_ERR(TAG, "pVirtualChannelInit failed with %s [%08"PRIX32"]",
 		         WTSErrorToString(rc), rc);
-		free(passthrough->real_channel_name);
-		free(passthrough->context);
-		free(passthrough);
-		return FALSE;
+		goto error;
 	}
 
 	passthrough->channelEntryPoints.pInterface = context;
 	return TRUE;
+
+error:
+	if (context->write_complete)
+		CloseHandle(context->write_complete);
+
+	free(passthrough->context);
+	free(passthrough);
+	return FALSE;
 }

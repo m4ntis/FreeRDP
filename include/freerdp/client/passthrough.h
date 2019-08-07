@@ -37,6 +37,7 @@ struct _passthrough_client_context
 
 	void* handle;
 	void* custom;
+	HANDLE write_complete;
 };
 
 #endif /* FREERDP_CHANNEL_PASSTHROUGH_CLIENT_PASSTHROUGH_H */

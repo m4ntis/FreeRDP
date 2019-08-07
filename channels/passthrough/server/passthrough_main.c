@@ -275,42 +275,43 @@ PassthroughServerContext* passthrough_server_context_new(HANDLE vcm, char* chann
 	PassthroughServerPrivate* passthrough;
 	context = (PassthroughServerContext*) calloc(1, sizeof(PassthroughServerContext));
 
-	if (context)
+	if (!context)
 	{
-		context->Open = passthrough_server_open;
-		context->Close = passthrough_server_close;
-		context->Start = passthrough_server_start;
-		context->Stop = passthrough_server_stop;
-		context->SendData = passthrough_server_send_data;
-		
-		passthrough = context->handle = (PassthroughServerPrivate*) calloc(1,
-		                            sizeof(PassthroughServerPrivate));
-
-		if (passthrough)
-		{
-			passthrough->vcm = vcm;
-			passthrough->s = Stream_New(NULL, 4096);
-
-			if (!passthrough->s)
-			{
-				WLog_ERR(TAG, "Stream_New failed!");
-				free(context->handle);
-				free(context);
-				return NULL;
-			}
-			
-			passthrough->channel_name = _strdup(channel_name);
-			// TODO: free
-		}
-		else
-		{
-			WLog_ERR(TAG, "calloc failed!");
-			free(context);
-			return NULL;
-		}
+		WLog_ERR(TAG, "calloc failed!");
+		return NULL;
 	}
 
+	context->Open = passthrough_server_open;
+	context->Close = passthrough_server_close;
+	context->Start = passthrough_server_start;
+	context->Stop = passthrough_server_stop;
+	context->SendData = passthrough_server_send_data;
+	
+	passthrough = context->handle = (PassthroughServerPrivate*) calloc(1,
+	                            sizeof(PassthroughServerPrivate));
+
+	if (!passthrough)
+	{
+		WLog_ERR(TAG, "calloc failed!");
+		goto error;
+	}
+
+	passthrough->vcm = vcm;
+	passthrough->s = Stream_New(NULL, 4096);
+
+	if (!passthrough->s)
+	{
+		WLog_ERR(TAG, "Stream_New failed!");
+		goto error;
+	}
+	
+	if (!(passthrough->channel_name = _strdup(channel_name)))
+		goto error;
+		
 	return context;
+error:
+	passthrough_server_context_free(context);
+	return NULL;
 }
 
 void passthrough_server_context_free(PassthroughServerContext* context)
@@ -327,6 +328,7 @@ void passthrough_server_context_free(PassthroughServerContext* context)
 		Stream_Free(passthrough->s, TRUE);
 	}
 
+	free(passthrough->channel_name);
 	free(context->handle);
 	free(context);
 }
