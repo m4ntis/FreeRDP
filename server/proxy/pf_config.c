@@ -56,7 +56,6 @@ static BOOL pf_config_get_uint16(wIniFile* ini, const char* section, const char*
 static BOOL pf_config_load_server(wIniFile* ini, proxyConfig* config)
 {
 	config->Host = _strdup(CONFIG_GET_STR(ini, "Server", "Host"));
-	config->LocalOnly = CONFIG_GET_BOOL(ini, "Server", "LocalOnly");
 	
 	if (!pf_config_get_uint16(ini, "Server", "Port", &config->Port))
 		return FALSE;
