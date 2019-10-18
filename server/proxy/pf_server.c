@@ -19,6 +19,10 @@
  * limitations under the License.
  */
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <errno.h>
 #include <signal.h>
 
@@ -50,6 +54,10 @@
 #include "pf_rdpgfx.h"
 #include "pf_disp.h"
 #include "pf_channels.h"
+
+#ifdef WITH_MFA
+#include "pf_mfa.h"
+#endif
 
 #define TAG PROXY_TAG("server")
 
@@ -190,6 +198,20 @@ static BOOL pf_server_adjust_monitor_layout(freerdp_peer* peer)
 	return TRUE;
 }
 
+#ifdef WITH_MFA
+/* should return FALSE if the connection should be closed, otherwise TRUE */
+static void pf_server_handle_token_expired(pServerContext* ps)
+{
+	MfaServerContext* mfa_server = ps->mfa;
+
+	/* send TOKEN_EXPIRED message */
+	mfa_server->ServerTokenResponse(mfa_server, MFA_FLAG_TOKEN_EXPIRED);
+
+	/* mark the connection as it should be closed */
+	SetEvent(ps->pdata->abort_event);
+}
+#endif
+
 /**
  * Handles an incoming client connection, to be run in it's own thread.
  *
@@ -283,6 +305,9 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 		}
 		eventHandles[eventCount++] = ChannelEvent;
 		eventHandles[eventCount++] = pdata->abort_event;
+#ifdef WITH_MFA
+		eventHandles[eventCount++] = pdata->mfa->token_expired;
+#endif
 		eventHandles[eventCount++] = WTSVirtualChannelManagerGetEventHandle(ps->vcm);
 		status = WaitForMultipleObjects(eventCount, eventHandles, FALSE, INFINITE);
 
@@ -310,7 +335,14 @@ static DWORD WINAPI pf_server_handle_client(LPVOID arg)
 			WLog_INFO(TAG, "abort_event is set, closing connection with client %s", client->hostname);
 			break;
 		}
-		
+
+#ifdef WITH_MFA
+		if (WaitForSingleObject(pdata->mfa->token_expired, 0) == WAIT_OBJECT_0)
+		{
+			pf_server_handle_token_expired(ps);
+		}
+#endif
+
 		switch (WTSVirtualChannelManagerGetDrdynvcState(ps->vcm))
 		{
 		/* Dynamic channel status may have been changed after processing */
@@ -345,6 +377,9 @@ fail:
 	WLog_INFO(TAG, "pf_server_handle_client(): stopping proxy's client");
 	freerdp_client_stop(pc);
 	WLog_INFO(TAG, "pf_server_handle_client(): freeing server's channels");
+#ifdef WITH_MFA
+	pf_mfa_wait_for_token_expired_thread(pdata->mfa);
+#endif
 	pf_server_channels_free(ps);
 	WLog_INFO(TAG, "pf_server_handle_client(): freeing proxy data");
 	proxy_data_free(pdata);

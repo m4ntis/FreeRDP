@@ -163,11 +163,21 @@ proxyData* proxy_data_new()
 
 	if (!(pdata->abort_event = CreateEvent(NULL, TRUE, FALSE, NULL)))
 	{
-		proxy_data_free(pdata);
-		return NULL;
+		goto error;
 	}
 
+#ifdef WITH_MFA
+	pdata->mfa = pf_mfa_context_new();
+	if (!pdata->mfa)
+	{
+		goto error;
+	}
+#endif
+
 	return pdata;
+error:
+	proxy_data_free(pdata);
+	return NULL;
 }
 
 /* sets connection info values using the settings of both server & client */
@@ -202,6 +212,10 @@ void proxy_data_free(proxyData* pdata)
 		CloseHandle(pdata->client_thread);
 		pdata->client_thread = NULL;
 	}
+
+#ifdef WITH_MFA
+	pf_mfa_context_free(pdata->mfa);
+#endif 
 
 	free(pdata);
 }

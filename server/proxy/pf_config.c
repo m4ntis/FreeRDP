@@ -27,6 +27,7 @@
 #include "pf_log.h"
 #include "pf_server.h"
 #include "pf_config.h"
+#include "token_validator.h"
 
 #define TAG PROXY_TAG("config")
 
@@ -125,6 +126,26 @@ static BOOL pf_config_load_filters(wIniFile* ini, proxyConfig* config)
 	return TRUE;
 }
 
+#ifdef WITH_MFA
+static BOOL pf_config_load_mfa(wIniFile* ini, proxyConfig* config)
+{
+	/* mfa token validator */
+	const char* mfa_adfs_base_url = CONFIG_GET_STR(ini, "MFA", "AdfsBaseUrl");
+	const char* mfa_audience = CONFIG_GET_STR(ini, "MFA", "Audience");
+	const BOOL insecure_ssl = CONFIG_GET_BOOL(ini, "MFA", "InsecureSSL");
+	const INT64 token_skew_minutes = IniFile_GetKeyValueInt(ini, "MFA", "TokenSkewMinutes");
+	config->tv = token_validator_init(mfa_adfs_base_url, mfa_audience, token_skew_minutes, insecure_ssl);
+	if (NULL == config->tv)
+	{
+		WLog_ERR(TAG, "pf_server_load_config: token_validator_init failed");
+		return FALSE;
+	}
+
+	config->MfaTimeoutSec = IniFile_GetKeyValueInt(ini, "MFA", "WaitTimeout");
+	return TRUE;
+}
+#endif
+
 BOOL pf_server_config_load(const char* path, proxyConfig* config)
 {
 	BOOL ok = FALSE;
@@ -159,6 +180,11 @@ BOOL pf_server_config_load(const char* path, proxyConfig* config)
 
 	if (!pf_config_load_filters(ini, config))
 		goto out;
+
+#ifdef WITH_MFA
+	if (!pf_config_load_mfa(ini, config))
+		goto out;
+#endif
 
 	ok = TRUE;
 out:
@@ -198,6 +224,9 @@ void pf_server_config_print(proxyConfig* config)
 void pf_server_config_free(proxyConfig* config)
 {
 	pf_filters_unregister_all(config->Filters);
+#ifdef WITH_MFA
+	token_validator_free(config->tv);
+#endif
 	free(config->TargetHost);
 	free(config->Host);
 	free(config);

@@ -49,6 +49,9 @@
 #include "pf_context.h"
 #include "pf_update.h"
 #include "pf_log.h"
+#ifdef WITH_MFA
+#include "pf_mfa.h"
+#endif
 
 #define TAG PROXY_TAG("client")
 
@@ -213,6 +216,43 @@ static void pf_client_post_disconnect(freerdp* instance)
 		proxy_data_abort_connect(pdata);
 }
 
+#ifdef WITH_MFA
+static BOOL pf_client_wait_for_mfa(proxyData* pdata)
+{
+	DWORD status;
+	MFA_STATUS mfa_st;
+	MfaServerContext* mfa = pdata->ps->mfa;
+
+	status = WaitForSingleObject(pdata->mfa->auth_status, pdata->config->MfaTimeoutSec * 1000);
+	WLog_DBG(TAG, "pf_client_wait_for_mfa: WaitForMultipleObjects ret %x", status);
+	if (status == WAIT_FAILED)
+	{
+		WLog_ERR(TAG, "pf_client_wait_for_mfa: WAIT_FAILED");
+		return FALSE;
+	}
+
+	if (status == WAIT_TIMEOUT)
+	{
+		WLog_WARN(TAG, "pf_client_wait_for_mfa: timeout passed, closing connection.");
+		mfa->ServerTokenResponse(mfa, MFA_FLAG_TIMEOUT);
+		return FALSE;
+	}
+
+	pf_mfa_get_status(pdata->mfa, &mfa_st);
+	switch (mfa_st)
+	{
+	case MFA_STATUS_AUTH_FAIL:
+		WLog_INFO(TAG, "authentication failed!");
+		return FALSE;
+	case MFA_STATUS_AUTH_SUCCESS:
+		WLog_INFO(TAG, "authentication succeeded!");
+		return TRUE;
+	default:
+		return FALSE;
+	}
+}
+#endif
+
 /**
  * RDP main loop.
  * Connects RDP, loops while running and handles event and dispatch, cleans up
@@ -242,6 +282,15 @@ static DWORD WINAPI pf_client_thread_proc(LPVOID arg)
 	 */
 	if (instance->settings->NlaSecurity)
 		pc->during_connect_process = TRUE;
+
+#ifdef WITH_MFA
+	if (!pf_client_wait_for_mfa(pdata))
+	{
+		/* disconnect client from proxy */
+		SetEvent(pdata->abort_event);
+		return 0;
+	}
+#endif
 
 	if (!freerdp_connect(instance))
 	{

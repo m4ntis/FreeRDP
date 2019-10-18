@@ -19,7 +19,7 @@
 set(MODULE_NAME "freerdp-proxy")
 set(MODULE_PREFIX "FREERDP_SERVER_PROXY")
 
-set(${MODULE_PREFIX}_SRCS
+list(APPEND ${MODULE_PREFIX}_SRCS
   freerdp_proxy.c
   pf_context.c
   pf_context.h
@@ -45,7 +45,8 @@ set(${MODULE_PREFIX}_SRCS
   pf_graphics.h
   pf_filters.c
   pf_filters.h
-  pf_log.h)
+  pf_log.h
+  )
 
 # On windows create dll version information.
 # Vendor, product and year are already set in top level CMakeLists.txt
@@ -63,11 +64,28 @@ if (WIN32)
   set ( ${MODULE_PREFIX}_SRCS ${${MODULE_PREFIX}_SRCS} ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
 endif()
 
-add_executable(${MODULE_NAME} ${${MODULE_PREFIX}_SRCS})
+list(APPEND ${MODULE_PREFIX}_LIBS freerdp-server)
+list(APPEND ${MODULE_PREFIX}_LIBS freerdp-client)
+list(APPEND ${MODULE_PREFIX}_LIBS winpr freerdp)
 
-set(${MODULE_PREFIX}_LIBS ${${MODULE_PREFIX}_LIBS} freerdp-server)
-set(${MODULE_PREFIX}_LIBS ${${MODULE_PREFIX}_LIBS} freerdp-client)
-set(${MODULE_PREFIX}_LIBS ${${MODULE_PREFIX}_LIBS} winpr freerdp)
+if ( WITH_MFA )
+  include_directories(${CJOSE_INCLUDE_DIR})
+  include_directories(${JANSSON_INCLUDE_DIR})
+  include_directories(${CURL_INCLUDE_DIR})
+
+  list(APPEND ${MODULE_PREFIX}_LIBS ${CJOSE_LIBRARY})
+  list(APPEND ${MODULE_PREFIX}_LIBS ${JANSSON_LIBRARY})
+  list(APPEND ${MODULE_PREFIX}_LIBS ${CURL_LIBRARY})
+
+  list(APPEND ${MODULE_PREFIX}_SRCS
+      pf_mfa.c
+      pf_mfa.h
+      token_validator.c
+      token_validator.h
+      )
+endif()
+
+add_executable(${MODULE_NAME} ${${MODULE_PREFIX}_SRCS})
 
 target_link_libraries(${MODULE_NAME} ${${MODULE_PREFIX}_LIBS})
 install(TARGETS ${MODULE_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT server)

@@ -22,6 +22,10 @@
 #ifndef FREERDP_SERVER_PROXY_PFCHANNELS_H
 #define FREERDP_SERVER_PROXY_PFCHANNELS_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <freerdp/freerdp.h>
 #include <freerdp/client/channels.h>
 

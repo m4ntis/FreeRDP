@@ -22,16 +22,25 @@
 #ifndef FREERDP_SERVER_PROXY_PFCONFIG_H
 #define FREERDP_SERVER_PROXY_PFCONFIG_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <winpr/ini.h>
 
 #include "pf_filters.h"
+
+/* forward declerations */
+struct token_validator;
+typedef struct token_validator TokenValidator;
+typedef struct proxy_config proxyConfig;
 
 struct proxy_config
 {
 	/* server */
 	char* Host;
 	UINT16 Port;
-	BOOL  LocalOnly;
+	BOOL LocalOnly;
 
 	/* target */
 	BOOL UseLoadBalanceInfo;
@@ -53,9 +62,14 @@ struct proxy_config
 
 	/* filters */
 	filters_list* Filters;
+
+#ifdef WITH_MFA
+	/* mfa */
+	TokenValidator* tv;
+	int MfaTimeoutSec;
+#endif
 };
 
-typedef struct proxy_config proxyConfig;
 
 BOOL pf_server_config_load(const char* path, proxyConfig* config);
 void pf_server_config_print(proxyConfig* config);

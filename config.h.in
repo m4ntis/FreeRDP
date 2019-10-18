@@ -68,6 +68,7 @@
 #cmakedefine WITH_MEDIA_FOUNDATION
 
 #cmakedefine WITH_VAAPI
+#cmakedefine WITH_MFA
 
 /* Plugins */
 #cmakedefine BUILTIN_CHANNELS
@@ -134,6 +135,10 @@
 #cmakedefine CHANNEL_URBDRC
 #cmakedefine CHANNEL_URBDRC_CLIENT
 #cmakedefine CHANNEL_URBDRC_SERVER
+#cmakedefine CHANNEL_MFA
+#cmakedefine CHANNEL_MFA_CLIENT
+#cmakedefine CHANNEL_MFA_SERVER
+
 
 /* Debug */
 #cmakedefine WITH_DEBUG_CERTIFICATE
